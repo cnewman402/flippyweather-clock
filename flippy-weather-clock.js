@@ -67,12 +67,14 @@ class FlippyWeatherClock extends LitElement {
 
     .flip {
       position: absolute;
+      top: 0;
       left: 0;
       width: 100%;
       height: 50%;
       background: var(--card-background-color, #222);
       backface-visibility: hidden;
       transform-origin: bottom;
+      z-index: 2;
     }
 
     .flip.animate {

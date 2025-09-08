@@ -1,0 +1,6 @@
+{
+  "name": "Flippy Weather Clock",
+  "render_readme": true,
+  "filename": "flippy-weather-clock.js",
+  "homeassistant": "2023.0.0"
+}

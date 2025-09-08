@@ -74,6 +74,7 @@ class FlippyWeatherClock extends LitElement {
       background: var(--card-background-color, #222);
       backface-visibility: hidden;
       transform-origin: bottom;
+      transform: rotateX(0deg);
       z-index: 2;
     }
 
@@ -81,7 +82,11 @@ class FlippyWeatherClock extends LitElement {
       animation: flipDown 0.5s ease-in-out forwards;
       box-shadow: inset 0 -4px 6px rgba(0,0,0,0.4);
     }
-
+    
+    .flip:not(.animate) {
+     visibility: hidden;
+    }
+    
     @keyframes flipDown {
       0% { transform: rotateX(0deg); }
       100% { transform: rotateX(-90deg); }
@@ -177,6 +182,7 @@ class FlippyWeatherClock extends LitElement {
         flip.addEventListener('animationend', () => {
           bottom.textContent = newVal;
           flip.classList.remove('animate');
+          flip.style.transform = 'rotateX(0deg)';
         }, { once: true });
       }
     });

@@ -1,5 +1,4 @@
-import { LitElement, html, css } from 'https://unpkg.com/lit@2.8.0/index.js?module';
-import styles from './flippy-weather-clock.css?inline';
+import { LitElement, html, css } from 'https://unpkg.com/lit-element@3.3.3/lit-element.js?module';
 
 class FlippyWeatherClock extends LitElement {
   static properties = {
@@ -7,7 +6,99 @@ class FlippyWeatherClock extends LitElement {
     config: {}
   };
 
-  static styles = css`${styles}`;
+  static styles = css`
+    :host {
+      display: block;
+      font-family: 'Roboto', sans-serif;
+      color: var(--primary-text-color, #fff);
+    }
+
+    .flippy-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .clock {
+      display: flex;
+      align-items: center;
+    }
+
+    .colon {
+      font-size: 3rem;
+      margin: 0 0.2em;
+    }
+
+    .flip-digit {
+      display: inline-block;
+      perspective: 1000px;
+      margin: 0 2px;
+    }
+
+    .digit {
+      position: relative;
+      display: block;
+      width: 50px;
+      height: 70px;
+      background: var(--card-background-color, #222);
+      color: var(--primary-text-color, #fff);
+      font-size: 3rem;
+      font-weight: bold;
+      text-align: center;
+      line-height: 70px;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .top,
+    .bottom {
+      height: 50%;
+      overflow: hidden;
+    }
+
+    .top {
+      border-bottom: 1px solid rgba(0,0,0,0.3);
+    }
+
+    .bottom {
+      border-top: 1px solid rgba(0,0,0,0.3);
+    }
+
+    .flip {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      background: var(--card-background-color, #222);
+      backface-visibility: hidden;
+      transform-origin: bottom;
+    }
+
+    .flip.animate {
+      animation: flipDown 0.5s ease-in-out forwards;
+      box-shadow: inset 0 -4px 6px rgba(0,0,0,0.4);
+    }
+
+    @keyframes flipDown {
+      0% { transform: rotateX(0deg); }
+      100% { transform: rotateX(-90deg); }
+    }
+
+    .weather {
+      margin-top: 0.5em;
+      font-size: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+    }
+
+    .weather svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+  `;
 
   setConfig(config) {
     if (!config.entity) throw new Error("Entity is required (weather entity)");
@@ -54,11 +145,10 @@ class FlippyWeatherClock extends LitElement {
   }
 
   renderWeatherIcon(condition) {
-    // Simple SVG icon mapping — you can expand this
     const icons = {
-      sunny: html`<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,4A1,1 0 0,1 13,5V7A1,1 0 0,1 12,8A1,1 0 0,1 11,7V5A1,1 0 0,1 12,4M4.22,5.64L5.64,4.22L7.05,5.64L5.64,7.05L4.22,5.64M1,11H3A1,1 0 0,1 4,12A1,1 0 0,1 3,13H1A1,1 0 0,1 0,12A1,1 0 0,1 1,11M4.22,18.36L5.64,16.95L7.05,18.36L5.64,19.78L4.22,18.36M11,21H13A1,1 0 0,1 14,22A1,1 0 0,1 13,23H11A1,1 0 0,1 10,22A1,1 0 0,1 11,21M16.95,18.36L18.36,16.95L19.78,18.36L18.36,19.78L16.95,18.36M21,11H23A1,1 0 0,1 24,12A1,1 0 0,1 23,13H21A1,1 0 0,1 20,12A1,1 0 0,1 21,11M16.95,5.64L18.36,4.22L19.78,5.64L18.36,7.05L16.95,5.64Z" /></svg>`,
-      cloudy: html`<svg viewBox="0 0 24 24"><path fill="currentColor" d="M6,19A4,4 0 0,1 2,15A4,4 0 0,1 6,11H7.26A6,6 0 0,1 19,13A4,4 0 0,1 19,21H6Z" /></svg>`,
-      rainy: html`<svg viewBox="0 0 24 24"><path fill="currentColor" d="M6,14A4,4 0 0,1 2,10A4,4 0 0,1 6,6H7.26A6,6 0 0,1 19,8A4,4 0 0,1 19,16H6M7,20A1,1 0 0,1 6,19A1,1 0 0,1 7,18A1,1 0 0,1 8,19A1,1 0 0,1 7,20M12,20A1,1 0 0,1 11,19A1,1 0 0,1 12,18A1,1 0 0,1 13,19A1,1 0 0,1 12,20M17,20A1,1 0 0,1 16,19A1,1 0 0,1 17,18A1,1 0 0,1 18,19A1,1 0 0,1 17,20Z" /></svg>`
+      sunny: html`<svg viewBox="0 0 24 24"><path d="M12,4A1,1 0 0,1 13,5V7A1,1 0 0,1 12,8A1,1 0 0,1 11,7V5A1,1 0 0,1 12,4M4.22,5.64L5.64,4.22L7.05,5.64L5.64,7.05L4.22,5.64M1,11H3A1,1 0 0,1 4,12A1,1 0 0,1 3,13H1A1,1 0 0,1 0,12A1,1 0 0,1 1,11M4.22,18.36L5.64,16.95L7.05,18.36L5.64,19.78L4.22,18.36M11,21H13A1,1 0 0,1 14,22A1,1 0 0,1 13,23H11A1,1 0 0,1 10,22A1,1 0 0,1 11,21M16.95,18.36L18.36,16.95L19.78,18.36L18.36,19.78L16.95,18.36M21,11H23A1,1 0 0,1 24,12A1,1 0 0,1 23,13H21A1,1 0 0,1 20,12A1,1 0 0,1 21,11M16.95,5.64L18.36,4.22L19.78,5.64L18.36,7.05L16.95,5.64Z"/></svg>`,
+      cloudy: html`<svg viewBox="0 0 24 24"><path d="M6,19A4,4 0 0,1 2,15A4,4 0 0,1 6,11H7.26A6,6 0 0,1 19,13A4,4 0 0,1 19,21H6Z"/></svg>`,
+      rainy: html`<svg viewBox="0 0 24 24"><path d="M6,14A4,4 0 0,1 2,10A4,4 0 0,1 6,6H7.26A6,6 0 0,1 19,8A4,4 0 0,1 19,16H6M7,20A1,1 0 0,1 6,19A1,1 0 0,1 7,18A1,1 0 0,1 8,19A1,1 0 0,1 7,20M12,20A1,1 0 0,1 11,19A1,1 0 0,1 12,18A1,1 0 0,1 13,19A1,1 0 0,1 12,20M17,20A1,1 0 0,1 16,19A1,1 0 0,1 17,18A1,1 0 0,1 18,19A1,1 0 0,1 17,20Z"/></svg>`
     };
     const key = condition.toLowerCase();
     return icons[key] || html`<span>${condition}</span>`;
@@ -80,7 +170,7 @@ class FlippyWeatherClock extends LitElement {
         top.textContent = newVal;
         flip.textContent = newVal;
         flip.classList.remove('animate');
-        void flip.offsetWidth; // force reflow
+        void flip.offsetWidth;
         flip.classList.add('animate');
         flip.addEventListener('animationend', () => {
           bottom.textContent = newVal;

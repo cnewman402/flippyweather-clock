@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css } from 'https://unpkg.com/lit@2.8.0/index.js?module';
 import styles from './flippy-weather-clock.css?inline';
 
 class FlippyWeatherClock extends LitElement {

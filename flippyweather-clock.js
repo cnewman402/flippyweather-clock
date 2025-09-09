@@ -13,7 +13,7 @@ var forecastFinished = false;
 var forecasts = {};
 
 const weatherDefaults = {
-    widgetPath: '/local/flippyweather-clock/',
+    widgetPath: 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/',
     lang: 'en',
     am_pm: false,
     svrOffset: 0,
@@ -26,7 +26,7 @@ const weatherDefaults = {
     }
 };
 
-const flippyVersion = "1.4.1";
+const flippyVersion = "1.4.2";
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
@@ -60,13 +60,16 @@ class FlippyWeather extends LitElement {
             }
         }
         
-        // Set up image paths like the original
+        // Force GitHub CDN path - override any local paths
+        defaultConfig.widgetPath = 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/';
+        
+        // Set up image paths to use GitHub CDN
         defaultConfig['imagesPath'] = defaultConfig.widgetPath + 'themes/' + defaultConfig.theme['name'] + '/';
         defaultConfig['clockImagesPath'] = defaultConfig.imagesPath + 'clock/';
         defaultConfig['weatherImagesPath'] = defaultConfig.imagesPath + 'weather/';
         
         // Debug: Log paths to console for troubleshooting
-        console.log('FlippyWeather paths:', {
+        console.log('FlippyWeather using GitHub CDN paths:', {
             widgetPath: defaultConfig.widgetPath,
             clockImagesPath: defaultConfig.clockImagesPath,
             weatherImagesPath: defaultConfig.weatherImagesPath
@@ -78,27 +81,13 @@ class FlippyWeather extends LitElement {
     async connectedCallback() {
         super.connectedCallback();
         
-        // Check if assets exist, if not, show helpful error
-        this.checkAssets();
+        // No need to check assets - they're hosted on GitHub CDN!
+        console.log('FlippyWeather: Using GitHub CDN for assets - no local installation required!');
         
         // Update every second to catch exact minute changes for smooth animations
         this.updateInterval = setInterval(() => {
             this.requestUpdate();
         }, 1000);
-    }
-
-    async checkAssets() {
-        const testImagePath = `${this._config.clockImagesPath}0.png`;
-        try {
-            const response = await fetch(testImagePath);
-            if (!response.ok) {
-                console.error('FlippyWeather: Clock images not found. Please ensure themes folder is installed.');
-                console.error('Expected path:', this._config.clockImagesPath);
-                console.error('Download assets from: https://github.com/cnewman402/flippyweather-clock/releases');
-            }
-        } catch (error) {
-            console.error('FlippyWeather: Could not verify assets:', error);
-        }
     }
 
     disconnectedCallback() {
@@ -208,13 +197,19 @@ class FlippyWeather extends LitElement {
         const condition = stateObj.state;
         const location = stateObj.attributes.friendly_name;
 
+        // FORCE GitHub CDN paths - override any configuration
+        const GITHUB_CDN_BASE = 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/';
+        const clockImagePath = GITHUB_CDN_BASE + 'themes/default/clock/';
+        
         // Debug: Log the actual image URLs being used
-        console.log('FlippyWeather render paths:', {
-            hourDigit0: `${this._config.clockImagesPath}${hourStr[0]}.png`,
-            hourDigit1: `${this._config.clockImagesPath}${hourStr[1]}.png`,
-            minuteDigit0: `${this._config.clockImagesPath}${minuteStr[0]}.png`,
-            minuteDigit1: `${this._config.clockImagesPath}${minuteStr[1]}.png`,
-            separator: `${this._config.clockImagesPath}dots.png`
+        console.log('FlippyWeather render paths (forced GitHub CDN):', {
+            baseUrl: GITHUB_CDN_BASE,
+            clockPath: clockImagePath,
+            hourDigit0: `${clockImagePath}${hourStr[0]}.png`,
+            hourDigit1: `${clockImagePath}${hourStr[1]}.png`,
+            minuteDigit0: `${clockImagePath}${minuteStr[0]}.png`,
+            minuteDigit1: `${clockImagePath}${minuteStr[1]}.png`,
+            separator: `${clockImagePath}dots.png`
         });
 
         return html`
@@ -252,7 +247,7 @@ class FlippyWeather extends LitElement {
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background-image: url('${this._config.clockImagesPath}clockbg1.png');
+                    background-image: url('https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/themes/default/clock/clockbg1.png');
                     background-size: contain;
                     background-repeat: no-repeat;
                     background-position: center;
@@ -347,6 +342,12 @@ class FlippyWeather extends LitElement {
                     font-weight: bold;
                 }
                 
+                .forecast-day-name {
+                    font-size: 0.8em;
+                    opacity: 0.8;
+                    margin-bottom: 5px;
+                }
+                
                 .digit-fallback, .separator-fallback {
                     position: absolute;
                     top: 50%;
@@ -367,7 +368,8 @@ class FlippyWeather extends LitElement {
                             <div class="clock-background"></div>
                             <div class="digit-image" 
                                  data-digit="firstHourDigit"
-                                 style="background-image: url('${this._config.clockImagesPath}${hourStr[0]}.png')">
+                                 style="background-image: url('${clockImagePath}${hourStr[0]}.png')">
+                                <span class="digit-fallback">${hourStr[0]}</span>
                             </div>
                         </div>
                         
@@ -375,19 +377,22 @@ class FlippyWeather extends LitElement {
                             <div class="clock-background"></div>
                             <div class="digit-image" 
                                  data-digit="secondHourDigit"
-                                 style="background-image: url('${this._config.clockImagesPath}${hourStr[1]}.png')">
+                                 style="background-image: url('${clockImagePath}${hourStr[1]}.png')">
+                                <span class="digit-fallback">${hourStr[1]}</span>
                             </div>
                         </div>
                         
                         <div class="clock-separator" 
-                             style="background-image: url('${this._config.clockImagesPath}dots.png')">
+                             style="background-image: url('${clockImagePath}dots.png')">
+                            <span class="separator-fallback">:</span>
                         </div>
                         
                         <div class="clock-digit">
                             <div class="clock-background"></div>
                             <div class="digit-image" 
                                  data-digit="firstMinuteDigit"
-                                 style="background-image: url('${this._config.clockImagesPath}${minuteStr[0]}.png')">
+                                 style="background-image: url('${clockImagePath}${minuteStr[0]}.png')">
+                                <span class="digit-fallback">${minuteStr[0]}</span>
                             </div>
                         </div>
                         
@@ -395,13 +400,14 @@ class FlippyWeather extends LitElement {
                             <div class="clock-background"></div>
                             <div class="digit-image" 
                                  data-digit="secondMinuteDigit"
-                                 style="background-image: url('${this._config.clockImagesPath}${minuteStr[1]}.png')">
+                                 style="background-image: url('${clockImagePath}${minuteStr[1]}.png')">
+                                <span class="digit-fallback">${minuteStr[1]}</span>
                             </div>
                         </div>
                         
                         ${this._config.am_pm ? html`
                             <div class="am-pm-indicator"
-                                 style="background-image: url('${this._config.clockImagesPath}${now.getHours() >= 12 ? 'pm' : 'am'}.png')">
+                                 style="background-image: url('${clockImagePath}${now.getHours() >= 12 ? 'pm' : 'am'}.png')">
                             </div>
                         ` : ''}
                     </div>

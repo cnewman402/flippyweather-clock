@@ -34,6 +34,7 @@ class FlippyWeather extends LitElement {
     constructor() {
         super();
         this.dataInitialized = false;
+        this.lastRenderedMinute = null;
     }
 
     static getStubConfig() {
@@ -59,6 +60,21 @@ class FlippyWeather extends LitElement {
         this._config = defaultConfig;
     }
 
+    connectedCallback() {
+        super.connectedCallback();
+        // Update every minute for the clock
+        this.updateInterval = setInterval(() => {
+            this.requestUpdate();
+        }, 60000);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        if (this.updateInterval) {
+            clearInterval(this.updateInterval);
+        }
+    }
+
     render() {
         if (!this._config || !this.hass) {
             return html`<ha-card><div style="padding: 20px;">Loading configuration...</div></ha-card>`;
@@ -75,10 +91,21 @@ class FlippyWeather extends LitElement {
             return html`<ha-card><div style="padding: 20px; color: orange;">Time sensor not found. Add time_date sensors to configuration.yaml</div></ha-card>`;
         }
 
+        const now = new Date();
+        const currentMinute = now.getMinutes();
+        let hour = now.getHours();
+        
+        if (this._config.am_pm) {
+            hour = hour > 12 ? hour - 12 : hour;
+            if (hour === 0) hour = 12;
+        }
+        
+        const hourStr = hour < 10 ? "0" + hour : "" + hour;
+        const minuteStr = currentMinute < 10 ? "0" + currentMinute : "" + currentMinute;
+        
         const temperature = Math.round(stateObj.attributes.temperature);
         const condition = stateObj.state;
         const location = stateObj.attributes.friendly_name;
-        const currentTime = new Date().toLocaleTimeString();
 
         return html`
             <style>
@@ -90,34 +117,76 @@ class FlippyWeather extends LitElement {
                     border-radius: 15px;
                     text-align: center;
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
                 }
-                .time-display {
-                    font-size: 2.5em;
-                    font-weight: 300;
+                .flip-clock {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
                     margin: 20px 0;
+                    gap: 20px;
                 }
-                .weather-info {
-                    font-size: 1.2em;
-                    margin: 10px 0;
-                }
-                .temperature {
+                .flip-digit {
+                    background: rgba(255, 255, 255, 0.2);
+                    border-radius: 8px;
+                    padding: 15px 20px;
                     font-size: 3em;
                     font-weight: bold;
+                    font-family: 'Courier New', monospace;
+                    backdrop-filter: blur(10px);
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                    transition: all 0.3s ease;
+                    min-width: 80px;
+                }
+                .flip-separator {
+                    font-size: 3em;
+                    font-weight: bold;
+                    opacity: 0.8;
+                }
+                .weather-info {
                     margin: 20px 0;
                 }
+                .location {
+                    font-size: 1.4em;
+                    margin-bottom: 10px;
+                    font-weight: 500;
+                }
+                .temperature {
+                    font-size: 2.5em;
+                    font-weight: 300;
+                    margin: 15px 0;
+                }
                 .condition {
-                    font-size: 1.5em;
+                    font-size: 1.2em;
                     text-transform: capitalize;
-                    margin: 10px 0;
+                    opacity: 0.9;
+                }
+                .am-pm {
+                    font-size: 1.2em;
+                    background: rgba(255, 255, 255, 0.2);
+                    padding: 5px 10px;
+                    border-radius: 15px;
+                    margin-left: 10px;
                 }
             </style>
             <ha-card @click="${this._handleClick}">
                 <div class="flippy-container">
-                    <div class="time-display">${currentTime}</div>
-                    <div class="weather-info">${location}</div>
-                    <div class="temperature">${temperature}°</div>
-                    <div class="condition">${condition}</div>
-                    <div style="font-size: 0.9em; opacity: 0.8; margin-top: 15px;">
+                    <div class="flip-clock">
+                        <div class="flip-digit">${hourStr[0]}</div>
+                        <div class="flip-digit">${hourStr[1]}</div>
+                        <div class="flip-separator">:</div>
+                        <div class="flip-digit">${minuteStr[0]}</div>
+                        <div class="flip-digit">${minuteStr[1]}</div>
+                        ${this._config.am_pm ? html`<div class="am-pm">${hour >= 12 ? 'PM' : 'AM'}</div>` : ''}
+                    </div>
+                    
+                    <div class="weather-info">
+                        <div class="location">${location}</div>
+                        <div class="temperature">${temperature}°</div>
+                        <div class="condition">${condition}</div>
+                    </div>
+                    
+                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 15px;">
                         FlippyWeather Clock v${flippyVersion}
                     </div>
                 </div>

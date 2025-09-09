@@ -39,36 +39,39 @@ class FlippyWeatherClock extends LitElement {
       position: relative;
       width: 50px;
       height: 70px;
-      background: var(--card-background-color, #222);
-      color: var(--primary-text-color, #fff);
+      font-size: 3rem;
       font-weight: bold;
       text-align: center;
       border-radius: 6px;
       overflow: hidden;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      background: var(--card-background-color, #222);
+      color: var(--primary-text-color, #fff);
     }
 
     .top, .bottom {
       position: absolute;
       width: 100%;
       height: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 3rem;
       overflow: hidden;
     }
 
     .top {
       top: 0;
-      line-height: 35px;
       clip-path: inset(0 0 50% 0);
       z-index: 2;
     }
 
     .bottom {
       bottom: 0;
-      line-height: 35px;
       clip-path: inset(50% 0 0 0);
       z-index: 1;
     }
+
 
     .flip {
       position: absolute;
@@ -76,8 +79,10 @@ class FlippyWeatherClock extends LitElement {
       left: 0;
       width: 100%;
       height: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 3rem;
-      line-height: 35px;
       background: var(--card-background-color, #222);
       color: var(--primary-text-color, #fff);
       backface-visibility: hidden;

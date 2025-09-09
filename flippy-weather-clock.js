@@ -140,16 +140,17 @@ class FlippyWeatherClock extends LitElement {
   }
 
   renderTimeDigits(str) {
-    return str.split('').map(d => html`
-      <div class="flip-digit">
-        <div class="digit">
-          <div class="top">${d}</div>
-          <div class="bottom">${d}</div>
-          <div class="flip">${d}</div>
-        </div>
+  return str.split('').map(d => html`
+    <div class="flip-digit">
+      <div class="digit">
+        <div class="top">${d}</div>
+        <div class="bottom">${d}</div>
+        <div class="flip" style="display: none;">${d}</div>
       </div>
-    `);
-  }
+    </div>
+  `);
+}
+
 
   renderWeatherIcon(condition) {
     const icons = {
@@ -180,6 +181,7 @@ class FlippyWeatherClock extends LitElement {
       flip.classList.remove('animate');
       void flip.offsetWidth;
       flip.classList.add('animate');
+
       flip.addEventListener('animationend', () => {
         bottom.textContent = newVal;
         flip.classList.remove('animate');
@@ -187,7 +189,7 @@ class FlippyWeatherClock extends LitElement {
       }, { once: true });
     }
   });
-}
+ }
 }
 
 customElements.define('flippy-weather-clock', FlippyWeatherClock);

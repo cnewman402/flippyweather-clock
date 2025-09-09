@@ -17,10 +17,8 @@ const weatherDefaults = {
     lang: 'en',
     am_pm: false,
     svrOffset: 0,
-    render: true,
-    renderClock: true,
-    renderDetails: true,
     renderForecast: true,
+    renderDetails: true,
     high_low_entity: false,
     theme: {
         name: 'default',
@@ -28,101 +26,14 @@ const weatherDefaults = {
     }
 };
 
-weatherDefaults['imagesPath'] = weatherDefaults.widgetPath + 'themes/' + weatherDefaults.theme['name'] + '/';
-weatherDefaults['clockImagesPath'] = weatherDefaults.imagesPath + 'clock/';
-weatherDefaults['weatherImagesPath'] = weatherDefaults.imagesPath + 'weather/' + weatherDefaults.theme['weather_icon_set'] + '/';
-
 const flippyVersion = "1.4.1";
-
-const weatherIconsDay = {
-    clear: "sunny",
-    "clear-night": "night",
-    cloudy: "cloudy",
-    fog: "fog",
-    hail: "hail",
-    lightning: "thunder",
-    "lightning-rainy": "thunder",
-    partlycloudy: "partlycloudy",
-    pouring: "pouring",
-    rainy: "pouring",
-    snowy: "snowy",
-    "snowy-rainy": "snowy-rainy",
-    sunny: "sunny",
-    windy: "cloudy",
-    "windy-variant": "cloudy-day-3",
-    exceptional: "na"
-};
-
-const weatherIconsNight = {
-    ...weatherIconsDay,
-    fog: "fog",
-    clear: "night",
-    sunny: "night",
-    partlycloudy: "cloudy-night-3",
-    "windy-variant": "cloudy-night-3"
-};
-
-const fireEvent = (node, type, detail, options) => {
-    options = options || {};
-    detail = detail === null || detail === undefined ? {} : detail;
-    const event = new Event(type, {
-        bubbles: options.bubbles === undefined ? true : options.bubbles,
-        cancelable: Boolean(options.cancelable),
-        composed: options.composed === undefined ? true : options.composed
-    });
-    event.detail = detail;
-    node.dispatchEvent(event);
-    return event;
-};
-
-function hasConfigOrEntityChanged(element, changedProps) {
-    if (changedProps.has("_config")) {
-        return true;
-    }
-    const oldHass = changedProps.get("hass");
-    if (oldHass) {
-        return (
-            oldHass.states[element._config.entity] !==
-            element.hass.states[element._config.entity] ||
-            oldHass.states["sun.sun"] !== element.hass.states["sun.sun"] ||
-            oldHass.states["sensor.date_time_iso"] !== element.hass.states["sensor.date_time_iso"]
-        );
-    }
-    return true;
-}
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
 class FlippyWeather extends LitElement {
     constructor() {
         super();
-        this.numberElements = 0;
-        this.lastRenderedMinute = null;
         this.dataInitialized = false;
-    }
-
-    static get getConfig() {
-        return this._config;
-    }
-    
-    static set setConfig(config) {
-        this._config = config;
-    }
-    
-    static get getHass() {
-        return this.hass;
-    }
-    
-    static set setHass(hass) {
-        this.hass = hass;
-    }
-
-    async initializeData() {
-        return { 
-            config: this._config, 
-            entity: this.hass.states[this._config.entity], 
-            hass_states: this.hass.states 
-        };
     }
 
     static getStubConfig() {
@@ -137,11 +48,6 @@ class FlippyWeather extends LitElement {
         var defaultConfig = {};
         for (const property in config) {
             defaultConfig[property] = config[property];
-            if (property == 'lang') {
-                if (!regional[config[property]]) {
-                    defaultConfig[property] = weatherDefaults[property];
-                }
-            }
         }
         
         for (const property in weatherDefaults) {
@@ -150,60 +56,69 @@ class FlippyWeather extends LitElement {
             }
         }
         
-        defaultConfig['imagesPath'] = defaultConfig.widgetPath + 'themes/' + defaultConfig.theme['name'] + '/';
-        defaultConfig['clockImagesPath'] = defaultConfig.imagesPath + 'clock/';
-        defaultConfig['weatherImagesPath'] = defaultConfig.imagesPath + 'weather/' + defaultConfig.theme['weather_icon_set'] + '/';
-        
         this._config = defaultConfig;
-    }
-
-    shouldUpdate(changedProps) {
-        var shouldUpdate = hasConfigOrEntityChanged(this, changedProps);
-        if (shouldUpdate) {
-            FlippyWeather.setHass = this.hass;
-            this.render();
-        }
-        if (!forecastFinished) {
-            this.updateForecasts();
-        }
-        return shouldUpdate;
-    }
-
-    updateForecasts() {
-        if (!this._config || !this.hass) {
-            return;
-        }
-        
-        const self = this;
-        FlippyWeather.setConfig = this._config;
-        FlippyWeather.setHass = this.hass;
-        
-        if (!this._config.high_low_entity) {
-            FlippyWeather.getHass.callService('weather', 'get_forecasts', 
-                { 'type': 'daily' }, 
-                { 'entity_id': self._config.entity }, 
-                false, true
-            ).then(function (res) {
-                forecastFinished = true;
-                forecasts = res.response[self._config.entity].forecast;
-            });
-        }
-        this.render();
     }
 
     render() {
         if (!this._config || !this.hass) {
-            return html``;
+            return html`<ha-card><div style="padding: 20px;">Loading configuration...</div></ha-card>`;
         }
 
+        const stateObj = this.hass.states[this._config.entity];
+        const timeObj = this.hass.states["sensor.date_time_iso"];
+        
+        if (!stateObj) {
+            return html`<ha-card><div style="padding: 20px; color: red;">Weather entity not found: ${this._config.entity}</div></ha-card>`;
+        }
+
+        if (!timeObj) {
+            return html`<ha-card><div style="padding: 20px; color: orange;">Time sensor not found. Add time_date sensors to configuration.yaml</div></ha-card>`;
+        }
+
+        const temperature = Math.round(stateObj.attributes.temperature);
+        const condition = stateObj.state;
+        const location = stateObj.attributes.friendly_name;
+        const currentTime = new Date().toLocaleTimeString();
+
         return html`
-            <ha-card>
-                <div style="padding: 16px;">
-                    <div style="background: linear-gradient(135deg, #74b9ff, #0984e3); color: white; padding: 20px; border-radius: 10px; text-align: center;">
-                        <h2>🌤️ FlippyWeather Clock</h2>
-                        <p>Entity: ${this._config.entity}</p>
-                        <p>Time: ${new Date().toLocaleTimeString()}</p>
-                        <p>Status: Loading...</p>
+            <style>
+                ${themes[this._config.theme.name]['css']}
+                .flippy-container {
+                    background: linear-gradient(135deg, #74b9ff, #0984e3);
+                    color: white;
+                    padding: 20px;
+                    border-radius: 15px;
+                    text-align: center;
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                }
+                .time-display {
+                    font-size: 2.5em;
+                    font-weight: 300;
+                    margin: 20px 0;
+                }
+                .weather-info {
+                    font-size: 1.2em;
+                    margin: 10px 0;
+                }
+                .temperature {
+                    font-size: 3em;
+                    font-weight: bold;
+                    margin: 20px 0;
+                }
+                .condition {
+                    font-size: 1.5em;
+                    text-transform: capitalize;
+                    margin: 10px 0;
+                }
+            </style>
+            <ha-card @click="${this._handleClick}">
+                <div class="flippy-container">
+                    <div class="time-display">${currentTime}</div>
+                    <div class="weather-info">${location}</div>
+                    <div class="temperature">${temperature}°</div>
+                    <div class="condition">${condition}</div>
+                    <div style="font-size: 0.9em; opacity: 0.8; margin-top: 15px;">
+                        FlippyWeather Clock v${flippyVersion}
                     </div>
                 </div>
             </ha-card>
@@ -211,7 +126,12 @@ class FlippyWeather extends LitElement {
     }
 
     _handleClick() {
-        fireEvent(this, "hass-more-info", { entityId: this._config.entity });
+        const event = new Event("hass-more-info", {
+            bubbles: true,
+            composed: true
+        });
+        event.detail = { entityId: this._config.entity };
+        this.dispatchEvent(event);
     }
 
     getCardSize() {
@@ -220,6 +140,7 @@ class FlippyWeather extends LitElement {
 
     set hass(hass) {
         this._hass = hass;
+        this.requestUpdate();
     }
 
     get hass() {

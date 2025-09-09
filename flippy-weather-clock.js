@@ -178,12 +178,21 @@ class FlippyWeatherClock extends LitElement {
         flip.style.display = 'flex';
         flip.classList.remove('animate');
         void flip.offsetWidth;
-        flip.classList.remove('animate');
-        flip.style.display = 'none';
-      }, { once: true });
-    }
-  });
-}
+        flip.classList.add('animate');
+
+        const onFlipEnd = () => {
+          top.textContent = newVal
+          top.textContent = newVal;
+          bottom.textContent = newVal;
+          flip.classList.remove('animate');
+          flip.style.display = 'none';
+          flip.removeEventListener('animationend', onFlipEnd);
+        };
+
+        flip.addEventListener('animationend', onFlipEnd);
+      }
+    });
+  }
 }
 
 customElements.define('flippy-weather-clock', FlippyWeatherClock);

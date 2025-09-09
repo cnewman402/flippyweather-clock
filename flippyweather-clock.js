@@ -151,7 +151,7 @@ class FlippyWeather extends LitElement {
     }
 
     performFlipAnimation(element, digitKey, oldDigit, newDigit) {
-        const clockPath = this._config.clockImagesPath;
+        const clockPath = 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/themes/default/clock/';
         
         // Original repo used animation frames like: 01-1.png, 01-2.png, 01-3.png for flipping from 0 to 1
         const animationKey = oldDigit + newDigit;

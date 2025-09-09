@@ -178,7 +178,7 @@ class FlippyWeatherClock extends LitElement {
       const top = el.querySelector('.top');
       const bottom = el.querySelector('.bottom');
       const flip = el.querySelector('.flip');
-            flip.classList.add('animate');
+      flip.classList.add('animate');
       flip.addEventListener('animationend', () => {
         top.textContent = newVal;
         bottom.textContent = newVal;
@@ -191,4 +191,3 @@ class FlippyWeatherClock extends LitElement {
 }
 
 customElements.define('flippy-weather-clock', FlippyWeatherClock);
-

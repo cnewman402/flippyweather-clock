@@ -168,17 +168,25 @@ class FlippyWeatherClock extends LitElement {
     return icons[key] || html`<span>${condition}</span>`;
   }
 
-  updated() {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const allDigits = [...hours.split(''), ...minutes.split('')];
+updated() {
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const allDigits = [...hours.split(''), ...minutes.split('')];
 
-    this.shadowRoot.querySelectorAll('.flip-digit').forEach((el, i) => {
-      const top = el.querySelector('.top');
-      const bottom = el.querySelector('.bottom');
-      const flip = el.querySelector('.flip');
+  this.shadowRoot.querySelectorAll('.flip-digit').forEach((el, i) => {
+    const top = el.querySelector('.top');
+    const bottom = el.querySelector('.bottom');
+    const flip = el.querySelector('.flip');
+    const newVal = allDigits[i];
+
+    if (top.textContent !== newVal) {
+      flip.textContent = top.textContent;
+      flip.style.display = 'block';
+      flip.classList.remove('animate');
+      void flip.offsetWidth;
       flip.classList.add('animate');
+
       flip.addEventListener('animationend', () => {
         top.textContent = newVal;
         bottom.textContent = newVal;

@@ -338,10 +338,17 @@ class FlippyWeather extends LitElement {
                     font-weight: bold;
                 }
                 
-                .forecast-day-name {
-                    font-size: 0.8em;
-                    opacity: 0.8;
-                    margin-bottom: 5px;
+                .digit-fallback, .separator-fallback {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 3em;
+                    font-weight: bold;
+                    color: white;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                    font-family: 'Courier New', monospace;
+                    display: none; /* Hidden when images load */
                 }
             </style>
             <ha-card @click="${this._handleClick}">

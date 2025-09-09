@@ -35,7 +35,6 @@ Place these files in `/config/www/flippyweather-clock/`:
 - `flippyweather-clock.js` (main file)
 - `themes.js` (theme definitions)
 - `regional.js` (language support)
-- `themes/` folder (images and assets)
 
 #### Step 2: Register Resource
 Go to **Settings** → **Dashboards** → **Resources** → **Add Resource**:

@@ -343,6 +343,37 @@ class FlippyWeather extends LitElement {
                     text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
                 }
                 
+                .current-weather {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 20px;
+                    margin: 15px 0;
+                }
+                
+                .main-weather-icon {
+                    width: 64px;
+                    height: 64px;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    position: relative;
+                    transition: transform 0.3s ease;
+                }
+                
+                .main-weather-icon:hover {
+                    transform: scale(1.1);
+                }
+                
+                .weather-icon-fallback {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 2em;
+                    display: none;
+                }
+                
                 .location {
                     font-size: 1.4em;
                     margin-bottom: 10px;
@@ -352,13 +383,13 @@ class FlippyWeather extends LitElement {
                 .temperature {
                     font-size: 2.5em;
                     font-weight: 300;
-                    margin: 15px 0;
                 }
                 
                 .condition {
                     font-size: 1.2em;
                     text-transform: capitalize;
                     opacity: 0.9;
+                    margin-top: 10px;
                 }
                 
                 .forecast-container {
@@ -373,15 +404,45 @@ class FlippyWeather extends LitElement {
                     text-align: center;
                     color: white;
                     min-width: 60px;
+                    padding: 10px;
+                    background: rgba(255, 255, 255, 0.1);
+                    border-radius: 8px;
+                    transition: all 0.3s ease;
+                }
+                
+                .forecast-day:hover {
+                    background: rgba(255, 255, 255, 0.2);
+                    transform: translateY(-2px);
                 }
                 
                 .forecast-icon {
-                    width: 32px;
-                    height: 32px;
+                    width: 40px;
+                    height: 40px;
                     background-size: contain;
                     background-repeat: no-repeat;
                     background-position: center;
-                    margin: 0 auto 5px;
+                    margin: 0 auto 8px;
+                    position: relative;
+                    transition: transform 0.3s ease;
+                }
+                
+                .forecast-icon:hover {
+                    transform: scale(1.1);
+                }
+                
+                .weather-fallback {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 0.6em;
+                    color: white;
+                    text-align: center;
+                    display: none;
+                    width: 40px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
                 }
                 
                 .forecast-temp {

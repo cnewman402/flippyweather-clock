@@ -183,4 +183,4 @@ class FlippyWeatherClock extends LitElement {
   }
 }
 
-customElements.define
+customElements.define('flippy-weather-clock', FlippyWeatherClock);

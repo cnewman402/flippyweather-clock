@@ -73,14 +73,17 @@ class FlippyWeatherClock extends LitElement {
       height: 50%;
       line-height: 35px;
       background: var(--card-background-color, #222);
+      color: var(--primary-text-color, #fff);
       backface-visibility: hidden;
       transform-origin: bottom;
-      z-index: 2;
+      z-index: 3;
       transform: rotateX(0deg);
       pointer-events: none;
+      display: none;
     }
 
     .flip.animate {
+      display: block;
       animation: flipDown 0.5s ease-in-out forwards;
     }
 
@@ -159,30 +162,32 @@ class FlippyWeatherClock extends LitElement {
   }
 
   updated() {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const allDigits = [...hours.split(''), ...minutes.split('')];
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const allDigits = [...hours.split(''), ...minutes.split('')];
 
-    this.shadowRoot.querySelectorAll('.flip-digit').forEach((el, i) => {
-      const top = el.querySelector('.top');
-      const bottom = el.querySelector('.bottom');
-      const flip = el.querySelector('.flip');
-      const newVal = allDigits[i];
+  this.shadowRoot.querySelectorAll('.flip-digit').forEach((el, i) => {
+    const top = el.querySelector('.top');
+    const bottom = el.querySelector('.bottom');
+    const flip = el.querySelector('.flip');
+    const newVal = allDigits[i];
 
-      if (top.textContent !== newVal) {
-        top.textContent = newVal;
-        flip.textContent = newVal;
+    if (top.textContent !== newVal) {
+      top.textContent = newVal;
+      flip.textContent = newVal;
+      flip.style.display = 'block';
+      flip.classList.remove('animate');
+      void flip.offsetWidth;
+      flip.classList.add('animate');
+      flip.addEventListener('animationend', () => {
+        bottom.textContent = newVal;
         flip.classList.remove('animate');
-        void flip.offsetWidth;
-        flip.classList.add('animate');
-        flip.addEventListener('animationend', () => {
-          bottom.textContent = newVal;
-          flip.classList.remove('animate');
-        }, { once: true });
-      }
-    });
-  }
+        flip.style.display = 'none';
+      }, { once: true });
+    }
+  });
+}
 }
 
 customElements.define('flippy-weather-clock', FlippyWeatherClock);

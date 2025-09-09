@@ -48,49 +48,46 @@ class FlippyWeatherClock extends LitElement {
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     }
 
-    .top, .bottom {
-      position: absolute;
-      width: 100%;
-      height: 50%;
-      font-size: 3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
+    .top, .bottom, .flip {
+  position: absolute;
+  width: 100%;
+  height: 50%;
+  font-size: 3rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  overflow: hidden;
+}
 
-    .top {
-      top: 0;
-      clip-path: inset(0 0 50% 0);
-      z-index: 2;
-    }
+.top {
+  top: 0;
+  clip-path: inset(0 0 50% 0);
+  z-index: 2;
+}
 
-    .bottom {
-      bottom: 0;
-      clip-path: inset(50% 0 0 0);
-      z-index: 1;
-    }
+.bottom {
+  bottom: 0;
+  clip-path: inset(50% 0 0 0);
+  z-index: 1;
+  align-items: flex-end;
+}
 
-    .flip {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 50%;
-      font-size: 3rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--card-background-color, #222);
-      color: var(--primary-text-color, #fff);
-      backface-visibility: hidden;
-      transform-origin: bottom;
-      z-index: 3;
-      transform: rotateX(0deg);
-      pointer-events: none;
-      display: none;
-      clip-path: inset(0 0 50% 0);
-    }
+.flip {
+  top: 0;
+  clip-path: inset(0 0 50% 0);
+  z-index: 3;
+  transform-origin: bottom;
+  transform: rotateX(0deg);
+  backface-visibility: hidden;
+  pointer-events: none;
+  display: none;
+  animation: none;
+}
+.flip.animate {
+  display: flex;
+  animation: flipDown 0.5s ease-in-out forwards;
+}
+
 
     .flip.animate {
       display: flex;

@@ -39,24 +39,23 @@ class FlippyWeatherClock extends LitElement {
       position: relative;
       width: 50px;
       height: 70px;
-      font-size: 3rem;
+      background: var(--card-background-color, #222);
+      color: var(--primary-text-color, #fff);
       font-weight: bold;
       text-align: center;
       border-radius: 6px;
       overflow: hidden;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      background: var(--card-background-color, #222);
-      color: var(--primary-text-color, #fff);
     }
 
     .top, .bottom {
       position: absolute;
       width: 100%;
       height: 50%;
+      font-size: 3rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3rem;
       overflow: hidden;
     }
 
@@ -72,17 +71,16 @@ class FlippyWeatherClock extends LitElement {
       z-index: 1;
     }
 
-
     .flip {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 50%;
+      font-size: 3rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3rem;
       background: var(--card-background-color, #222);
       color: var(--primary-text-color, #fff);
       backface-visibility: hidden;
@@ -95,7 +93,7 @@ class FlippyWeatherClock extends LitElement {
     }
 
     .flip.animate {
-      display: block;
+      display: flex;
       animation: flipDown 0.5s ease-in-out forwards;
     }
 
@@ -173,26 +171,23 @@ class FlippyWeatherClock extends LitElement {
     return icons[key] || html`<span>${condition}</span>`;
   }
 
-updated() {
-  const now = new Date();
-  const hours = now.getHours().toString().padStart(2, '0');
-  const minutes = now.getMinutes().toString().padStart(2, '0');
-  const allDigits = [...hours.split(''), ...minutes.split('')];
+  updated() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const allDigits = [...hours.split(''), ...minutes.split('')];
 
-  this.shadowRoot.querySelectorAll('.flip-digit').forEach((el, i) => {
-    const top = el.querySelector('.top');
-    const bottom = el.querySelector('.bottom');
-    const flip = el.querySelector('.flip');
-    const newVal = allDigits[i];
-
-    if (top.textContent !== newVal) {
-      flip.textContent = top.textContent;
-      flip.style.display = 'block';
+    this.shadowRoot.querySelectorAll('.flip-digit').forEach((el, i) => {
+      const top = el.querySelector('.top');
+      const bottom = el.querySelector('.bottom');
+      const flip = el.query
+            flip.textContent = top.textContent;
+      flip.style.display = 'flex';
       flip.classList.remove('animate');
       void flip.offsetWidth;
       flip.classList.add('animate');
 
-      flip.addEventListener('animationend', () => {
+      flip.addEventListener('animationend'), () => {
         top.textContent = newVal;
         bottom.textContent = newVal;
         flip.classList.remove('animate');

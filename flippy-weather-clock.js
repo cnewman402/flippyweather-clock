@@ -187,7 +187,7 @@ class FlippyWeatherClock extends LitElement {
       void flip.offsetWidth;
       flip.classList.add('animate');
 
-      flip.addEventListener('animationend'), () => {
+      flip.addEventListener('animationend', () => {
         top.textContent = newVal;
         bottom.textContent = newVal;
         flip.classList.remove('animate');

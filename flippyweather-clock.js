@@ -65,15 +65,40 @@ class FlippyWeather extends LitElement {
         defaultConfig['clockImagesPath'] = defaultConfig.imagesPath + 'clock/';
         defaultConfig['weatherImagesPath'] = defaultConfig.imagesPath + 'weather/';
         
+        // Debug: Log paths to console for troubleshooting
+        console.log('FlippyWeather paths:', {
+            widgetPath: defaultConfig.widgetPath,
+            clockImagesPath: defaultConfig.clockImagesPath,
+            weatherImagesPath: defaultConfig.weatherImagesPath
+        });
+        
         this._config = defaultConfig;
     }
 
-    connectedCallback() {
+    async connectedCallback() {
         super.connectedCallback();
+        
+        // Check if assets exist, if not, show helpful error
+        this.checkAssets();
+        
         // Update every second to catch exact minute changes for smooth animations
         this.updateInterval = setInterval(() => {
             this.requestUpdate();
         }, 1000);
+    }
+
+    async checkAssets() {
+        const testImagePath = `${this._config.clockImagesPath}0.png`;
+        try {
+            const response = await fetch(testImagePath);
+            if (!response.ok) {
+                console.error('FlippyWeather: Clock images not found. Please ensure themes folder is installed.');
+                console.error('Expected path:', this._config.clockImagesPath);
+                console.error('Download assets from: https://github.com/cnewman402/flippyweather-clock/releases');
+            }
+        } catch (error) {
+            console.error('FlippyWeather: Could not verify assets:', error);
+        }
     }
 
     disconnectedCallback() {

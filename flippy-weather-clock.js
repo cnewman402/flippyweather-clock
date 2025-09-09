@@ -172,16 +172,21 @@ class FlippyWeatherClock extends LitElement {
   }
 
   updated() {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const allDigits = [...hours.split(''), ...minutes.split('')];
+  const now = new Date();
+  const hours = now.getHours().toString().padStart(2, '0');
+  const minutes = now.getMinutes().toString().padStart(2, '0');
+  const allDigits = [...hours.split(''), ...minutes.split('')];
 
-    this.shadowRoot.querySelectorAll('.flip-digit').forEach((el, i) => {
-      const top = el.querySelector('.top');
-      const bottom = el.querySelector('.bottom');
-      const flip = el.query
-            flip.textContent = top.textContent;
+  this.shadowRoot.querySelectorAll('.flip-digit').forEach((el, i) => {
+    const top = el.querySelector('.top');
+    const bottom = el.querySelector('.bottom');
+    const flip = el.querySelector('.flip');
+    const newVal = allDigits[i];
+
+    const currentVal = top.textContent;
+
+    if (currentVal !== newVal) {
+      flip.textContent = currentVal;
       flip.style.display = 'flex';
       flip.classList.remove('animate');
       void flip.offsetWidth;
@@ -196,6 +201,8 @@ class FlippyWeatherClock extends LitElement {
     }
   });
 }
+
 }
 
 customElements.define('flippy-weather-clock', FlippyWeatherClock);
+

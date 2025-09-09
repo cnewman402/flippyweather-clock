@@ -208,6 +208,15 @@ class FlippyWeather extends LitElement {
         const condition = stateObj.state;
         const location = stateObj.attributes.friendly_name;
 
+        // Debug: Log the actual image URLs being used
+        console.log('FlippyWeather render paths:', {
+            hourDigit0: `${this._config.clockImagesPath}${hourStr[0]}.png`,
+            hourDigit1: `${this._config.clockImagesPath}${hourStr[1]}.png`,
+            minuteDigit0: `${this._config.clockImagesPath}${minuteStr[0]}.png`,
+            minuteDigit1: `${this._config.clockImagesPath}${minuteStr[1]}.png`,
+            separator: `${this._config.clockImagesPath}dots.png`
+        });
+
         return html`
             <style>
                 ${themes[this._config.theme.name]['css']}

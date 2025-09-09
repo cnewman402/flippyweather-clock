@@ -37,6 +37,7 @@ class FlippyWeather extends LitElement {
         this.lastRenderedMinute = null;
         this.previousTime = { hour1: null, hour2: null, minute1: null, minute2: null };
         this.animatingDigits = new Set();
+        this.oldTime = {};
     }
 
     static getStubConfig() {
@@ -58,6 +59,11 @@ class FlippyWeather extends LitElement {
                 defaultConfig[property] = weatherDefaults[property];
             }
         }
+        
+        // Set up image paths like the original
+        defaultConfig['imagesPath'] = defaultConfig.widgetPath + 'themes/' + defaultConfig.theme['name'] + '/';
+        defaultConfig['clockImagesPath'] = defaultConfig.imagesPath + 'clock/';
+        defaultConfig['weatherImagesPath'] = defaultConfig.imagesPath + 'weather/';
         
         this._config = defaultConfig;
     }
@@ -93,36 +99,56 @@ class FlippyWeather extends LitElement {
         const minuteStr = now.getMinutes() < 10 ? "0" + now.getMinutes() : "" + now.getMinutes();
         
         const currentTime = {
-            hour1: hourStr[0],
-            hour2: hourStr[1],
-            minute1: minuteStr[0],
-            minute2: minuteStr[1]
+            firstHourDigit: hourStr[0],
+            secondHourDigit: hourStr[1],
+            firstMinuteDigit: minuteStr[0],
+            secondMinuteDigit: minuteStr[1]
         };
         
-        // Trigger animations for changed digits
+        // Trigger animations for changed digits (like original repo)
         Object.keys(currentTime).forEach(key => {
-            if (this.previousTime[key] !== null && this.previousTime[key] !== currentTime[key]) {
-                this.animateDigit(key);
+            if (this.oldTime[key] !== undefined && this.oldTime[key] !== currentTime[key]) {
+                this.animateDigitFlip(key, this.oldTime[key], currentTime[key]);
             }
         });
         
-        this.previousTime = currentTime;
+        this.oldTime = currentTime;
     }
 
-    animateDigit(digitKey) {
+    animateDigitFlip(digitKey, oldDigit, newDigit) {
         const digitElement = this.shadowRoot.querySelector(`[data-digit="${digitKey}"]`);
         if (digitElement && !this.animatingDigits.has(digitKey)) {
             this.animatingDigits.add(digitKey);
             
-            // Add flip animation class
-            digitElement.classList.add('flipping');
-            
-            // Remove animation class after animation completes
-            setTimeout(() => {
-                digitElement.classList.remove('flipping');
-                this.animatingDigits.delete(digitKey);
-            }, 600);
+            // Create flip animation using the original repo's method with image frames
+            this.performFlipAnimation(digitElement, digitKey, oldDigit, newDigit);
         }
+    }
+
+    performFlipAnimation(element, digitKey, oldDigit, newDigit) {
+        const clockPath = this._config.clockImagesPath;
+        
+        // Original repo used animation frames like: 01-1.png, 01-2.png, 01-3.png for flipping from 0 to 1
+        const animationKey = oldDigit + newDigit;
+        
+        // Phase 1: Show first half of flip animation
+        element.style.backgroundImage = `url(${clockPath}${animationKey}-1.png)`;
+        
+        setTimeout(() => {
+            // Phase 2: Show middle of flip
+            element.style.backgroundImage = `url(${clockPath}${animationKey}-2.png)`;
+        }, 100);
+        
+        setTimeout(() => {
+            // Phase 3: Show second half of flip
+            element.style.backgroundImage = `url(${clockPath}${animationKey}-3.png)`;
+        }, 200);
+        
+        setTimeout(() => {
+            // Final: Show the new digit
+            element.style.backgroundImage = `url(${clockPath}${newDigit}.png)`;
+            this.animatingDigits.delete(digitKey);
+        }, 300);
     }
 
     render() {
@@ -160,165 +186,183 @@ class FlippyWeather extends LitElement {
         return html`
             <style>
                 ${themes[this._config.theme.name]['css']}
+                
                 .flippy-container {
-                    background: linear-gradient(135deg, #74b9ff, #0984e3);
-                    color: white;
-                    padding: 20px;
-                    border-radius: 15px;
+                    position: relative;
                     text-align: center;
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
                 }
-                .flip-clock {
+                
+                .htc-clock {
                     display: flex;
                     justify-content: center;
                     align-items: center;
                     margin: 20px 0;
-                    gap: 20px;
-                }
-                .flip-digit {
+                    gap: 10px;
                     position: relative;
-                    background: rgba(255, 255, 255, 0.2);
-                    border-radius: 8px;
-                    padding: 15px 20px;
-                    font-size: 3em;
-                    font-weight: bold;
-                    font-family: 'Courier New', monospace;
-                    backdrop-filter: blur(10px);
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-                    min-width: 80px;
-                    overflow: hidden;
-                    perspective: 1000px;
-                    transition: transform 0.1s ease;
                 }
                 
-                .flip-digit.flipping {
-                    animation: flipAnimation 0.6s ease-in-out;
+                .clock-digit {
+                    position: relative;
+                    width: 80px;
+                    height: 120px;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    display: inline-block;
                 }
                 
-                @keyframes flipAnimation {
-                    0% {
-                        transform: rotateX(0deg);
-                    }
-                    50% {
-                        transform: rotateX(-90deg);
-                        background: rgba(255, 255, 255, 0.4);
-                        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-                    }
-                    100% {
-                        transform: rotateX(0deg);
-                    }
+                .clock-background {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-image: url('${this._config.clockImagesPath}clockbg1.png');
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    z-index: 1;
                 }
                 
-                .flip-digit:hover {
-                    transform: scale(1.05);
-                    background: rgba(255, 255, 255, 0.3);
+                .digit-image {
+                    position: relative;
+                    z-index: 2;
+                    width: 100%;
+                    height: 100%;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
                 }
                 
-                .flip-separator {
-                    font-size: 3em;
-                    font-weight: bold;
-                    opacity: 0.8;
+                .clock-separator {
+                    width: 20px;
+                    height: 120px;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
                     animation: blink 2s infinite;
                 }
                 
                 @keyframes blink {
-                    0%, 50% { opacity: 0.8; }
-                    51%, 100% { opacity: 0.3; }
+                    0%, 50% { opacity: 1; }
+                    51%, 100% { opacity: 0.5; }
+                }
+                
+                .am-pm-indicator {
+                    position: absolute;
+                    right: -60px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    width: 40px;
+                    height: 30px;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
                 }
                 
                 .weather-info {
                     margin: 20px 0;
-                    animation: fadeInUp 0.8s ease-out;
-                }
-                
-                @keyframes fadeInUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
+                    color: white;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
                 }
                 
                 .location {
                     font-size: 1.4em;
                     margin-bottom: 10px;
                     font-weight: 500;
-                    transition: color 0.3s ease;
                 }
                 
                 .temperature {
                     font-size: 2.5em;
                     font-weight: 300;
                     margin: 15px 0;
-                    transition: all 0.3s ease;
-                }
-                
-                .temperature:hover {
-                    transform: scale(1.1);
-                    text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
                 }
                 
                 .condition {
                     font-size: 1.2em;
                     text-transform: capitalize;
                     opacity: 0.9;
-                    transition: opacity 0.3s ease;
                 }
                 
-                .am-pm {
-                    font-size: 1.2em;
-                    background: rgba(255, 255, 255, 0.2);
-                    padding: 5px 10px;
-                    border-radius: 15px;
-                    margin-left: 10px;
-                    transition: all 0.3s ease;
-                    animation: pulse 3s infinite;
+                .forecast-container {
+                    display: flex;
+                    justify-content: center;
+                    gap: 15px;
+                    margin-top: 20px;
+                    flex-wrap: wrap;
                 }
                 
-                @keyframes pulse {
-                    0%, 100% {
-                        transform: scale(1);
-                        background: rgba(255, 255, 255, 0.2);
-                    }
-                    50% {
-                        transform: scale(1.05);
-                        background: rgba(255, 255, 255, 0.3);
-                    }
+                .forecast-day {
+                    text-align: center;
+                    color: white;
+                    min-width: 60px;
                 }
                 
-                .flippy-container:hover .flip-digit {
-                    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+                .forecast-icon {
+                    width: 32px;
+                    height: 32px;
+                    background-size: contain;
+                    background-repeat: no-repeat;
+                    background-position: center;
+                    margin: 0 auto 5px;
                 }
                 
-                .flippy-container:hover .weather-info {
-                    transform: translateY(-2px);
+                .forecast-temp {
+                    font-size: 0.9em;
+                    font-weight: bold;
                 }
                 
-                /* Loading shimmer effect */
-                .loading-shimmer {
-                    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-                    background-size: 200% 100%;
-                    animation: shimmer 2s infinite;
-                }
-                
-                @keyframes shimmer {
-                    0% { background-position: -200% 0; }
-                    100% { background-position: 200% 0; }
+                .forecast-day-name {
+                    font-size: 0.8em;
+                    opacity: 0.8;
+                    margin-bottom: 5px;
                 }
             </style>
             <ha-card @click="${this._handleClick}">
                 <div class="flippy-container">
-                    <div class="flip-clock">
-                        <div class="flip-digit" data-digit="hour1">${hourStr[0]}</div>
-                        <div class="flip-digit" data-digit="hour2">${hourStr[1]}</div>
-                        <div class="flip-separator">:</div>
-                        <div class="flip-digit" data-digit="minute1">${minuteStr[0]}</div>
-                        <div class="flip-digit" data-digit="minute2">${minuteStr[1]}</div>
-                        ${this._config.am_pm ? html`<div class="am-pm">${now.getHours() >= 12 ? 'PM' : 'AM'}</div>` : ''}
+                    <div class="htc-clock">
+                        <div class="clock-digit">
+                            <div class="clock-background"></div>
+                            <div class="digit-image" 
+                                 data-digit="firstHourDigit"
+                                 style="background-image: url('${this._config.clockImagesPath}${hourStr[0]}.png')">
+                            </div>
+                        </div>
+                        
+                        <div class="clock-digit">
+                            <div class="clock-background"></div>
+                            <div class="digit-image" 
+                                 data-digit="secondHourDigit"
+                                 style="background-image: url('${this._config.clockImagesPath}${hourStr[1]}.png')">
+                            </div>
+                        </div>
+                        
+                        <div class="clock-separator" 
+                             style="background-image: url('${this._config.clockImagesPath}dots.png')">
+                        </div>
+                        
+                        <div class="clock-digit">
+                            <div class="clock-background"></div>
+                            <div class="digit-image" 
+                                 data-digit="firstMinuteDigit"
+                                 style="background-image: url('${this._config.clockImagesPath}${minuteStr[0]}.png')">
+                            </div>
+                        </div>
+                        
+                        <div class="clock-digit">
+                            <div class="clock-background"></div>
+                            <div class="digit-image" 
+                                 data-digit="secondMinuteDigit"
+                                 style="background-image: url('${this._config.clockImagesPath}${minuteStr[1]}.png')">
+                            </div>
+                        </div>
+                        
+                        ${this._config.am_pm ? html`
+                            <div class="am-pm-indicator"
+                                 style="background-image: url('${this._config.clockImagesPath}${now.getHours() >= 12 ? 'pm' : 'am'}.png')">
+                            </div>
+                        ` : ''}
                     </div>
                     
                     <div class="weather-info">
@@ -327,11 +371,42 @@ class FlippyWeather extends LitElement {
                         <div class="condition">${condition}</div>
                     </div>
                     
-                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 15px;">
+                    ${this._config.renderForecast ? this.renderForecast(stateObj) : ''}
+                    
+                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 15px; color: white;">
                         FlippyWeather Clock v${flippyVersion}
                     </div>
                 </div>
             </ha-card>
+        `;
+    }
+
+    renderForecast(stateObj) {
+        if (!stateObj.attributes.forecast || !Array.isArray(stateObj.attributes.forecast)) {
+            return html``;
+        }
+
+        const forecast = stateObj.attributes.forecast.slice(0, 4); // Show 4 days like original
+        
+        return html`
+            <div class="forecast-container">
+                ${forecast.map(day => {
+                    const date = new Date(day.datetime);
+                    const dayName = date.toLocaleDateString(this._config.lang, { weekday: 'short' });
+                    const temp = Math.round(day.temperature);
+                    const condition = day.condition;
+                    
+                    return html`
+                        <div class="forecast-day">
+                            <div class="forecast-day-name">${dayName}</div>
+                            <div class="forecast-icon" 
+                                 style="background-image: url('${this._config.weatherImagesPath}${this._config.theme.weather_icon_set}/${condition}.png')">
+                            </div>
+                            <div class="forecast-temp">${temp}°</div>
+                        </div>
+                    `;
+                })}
+            </div>
         `;
     }
 
@@ -345,7 +420,7 @@ class FlippyWeather extends LitElement {
     }
 
     getCardSize() {
-        return 3;
+        return 4;
     }
 
     set hass(hass) {

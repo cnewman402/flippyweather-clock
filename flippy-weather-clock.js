@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'https://cdn.jsdelivr.net/npm/lit-element@3.3.3/lit-element.min.js';
+import { LitElement, html, css } from 'https://unpkg.com/lit@2.8.0/index.js?module';
 
 class FlippyWeatherClock extends LitElement {
   static properties = {

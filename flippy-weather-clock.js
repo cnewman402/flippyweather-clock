@@ -58,11 +58,19 @@ class FlippyWeatherClock extends LitElement {
     }
 
     .top {
-      border-bottom: 1px solid rgba(0,0,0,0.3);
+      height: 50%;
+      overflow: hidden;
+      position: relative;
+      z-index: 2;
+      clip-path: inset(0 0 50% 0);
     }
 
     .bottom {
-      border-top: 1px solid rgba(0,0,0,0.3);
+      height: 50%;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+      clip-path: inset(50% 0 0 0);
     }
 
     .flip {
@@ -80,12 +88,12 @@ class FlippyWeatherClock extends LitElement {
       transform: rotateX(0deg);
       pointer-events: none;
       display: none;
+      clip-path: inset(0 0 50% 0);
     }
-
-    .flip.animate {
-      display: block;
-      animation: flipDown 0.5s ease-in-out forwards;
-    }
+.flip.animate {
+  display: block;
+  animation: flipDown 0.5s ease-in-out forwards;
+}
 
     @keyframes flipDown {
       0% { transform: rotateX(0deg); }
@@ -145,11 +153,12 @@ class FlippyWeatherClock extends LitElement {
       <div class="digit">
         <div class="top">${d}</div>
         <div class="bottom">${d}</div>
-        <div class="flip" style="display: none;">${d}</div>
+        <div class="flip">${d}</div>
       </div>
     </div>
   `);
 }
+
 
 
   renderWeatherIcon(condition) {

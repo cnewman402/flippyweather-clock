@@ -1,6 +1,9 @@
 {
   "name": "Flippy Weather Clock",
+  "content_in_root": false,
+  "filename": "flippy-flipclock-weather.js",
+  "country": ["ALL"],
+  "homeassistant": "0.115.0",
   "render_readme": true,
-  "filename": "flippy-weather-clock.js",
-  "homeassistant": "2023.0.0"
+  "iot_class": "Local Polling"
 }

@@ -12,7 +12,7 @@ import { themes } from './themes.js?v1.0.2';
 var forecastFinished = false;
 var forecasts = {};
 const weatherDefaults = {
-    widgetPath: '/local/custom_ui/flippy-weather/',
+    widgetPath: '/local/flippy-weather/',
     lang: 'en',
     am_pm: false,
     svrOffset: 0,
@@ -29,7 +29,7 @@ weatherDefaults['imagesPath'] = weatherDefaults.widgetPath + 'themes/' + weather
 weatherDefaults['clockImagesPath'] = weatherDefaults.imagesPath + 'clock/'
 weatherDefaults['weatherImagesPath'] = weatherDefaults.imagesPath + 'weather/' + weatherDefaults.theme['weather_icon_set'] + '/'
 
-const flippyVersion = "1.1.0";
+const flippyVersion = "1.4.1";
 
 
 const weatherIconsDay = {
@@ -114,8 +114,7 @@ class FlippyWeather extends LitElement {
         };
     }
 
-    async importJquery() {
-        await import("./lib/jquery-3.4.1.min.js")
+    async initializeData() {
         return { config: this._config, entity: this.hass.states[this._config.entity], hass_states: this.hass.states }
     }
 
@@ -261,14 +260,14 @@ class FlippyWeather extends LitElement {
             var container_size = '320px'
         }
         const container = document.createElement('div');
-        container.id = 'flippy-weather-card-container';
+        container.id = 'flippyweather-card-container';
         // container.onclick = this._handleClick(this._config.entity)
         container.style = `height: ${container_size};`
         card.appendChild(container);
 
         const flippy_clock = document.createElement('div')
-        flippy_clock.id = 'flippy-clock'
-        flippy_clock.classList.add(`flippy-clock-${this.numberElements}`)
+        flippy_clock.id = 'flippyclock'
+        flippy_clock.classList.add(`flippyclock-${this.numberElements}`)
         container.appendChild(flippy_clock)
 
         const flippy_clock_hours = document.createElement('div')
@@ -341,8 +340,8 @@ class FlippyWeather extends LitElement {
         flippy_clock_minutes.appendChild(min_bg_second)
 
         const flippy_weather = document.createElement('div')
-        flippy_weather.id = 'flippy-weather'
-        flippy_weather.classList.add(`flippy-weather-${this.numberElements}`)
+        flippy_weather.id = 'flippyweather'
+        flippy_weather.classList.add(`flippyweather-${this.numberElements}`)
         container.appendChild(flippy_weather)
 
         const spinner = document.createElement('p')
@@ -350,14 +349,15 @@ class FlippyWeather extends LitElement {
         spinner.innerHTML = `Fetching weather...`
         flippy_weather.appendChild(spinner)
 
-        if (!window.jQuery) {
-            this.importJquery().then((result) => {
+        if (!this.dataInitialized) {
+            this.initializeData().then((result) => {
                 // Only animate if minute changed
                 if (this.lastRenderedMinute !== currentMinute) {
                     FlippyWeather.setNewTime(flippy_clock)
                     this.lastRenderedMinute = currentMinute
                 }
                 FlippyWeather.setNewWeather(flippy_weather)
+                this.dataInitialized = true
             })
         } else {
             // Only animate if minute changed
@@ -378,37 +378,41 @@ class FlippyWeather extends LitElement {
         var curr_temp = `<p class="temp">${String(temp_now)}
                        <span class="metric">
                        ${FlippyWeather.getUnit("temperature")}</span></p>`;
-        $(elem).css('background', 'url('
-            + weatherIcon
-            + ') 50% 0 no-repeat');
+        
+        // Set background image using modern CSS
+        elem.style.background = `url(${weatherIcon}) 50% 0 no-repeat`;
+        
         var weather = `<div id="local">
                             <p class="city">${stateObj.attributes.friendly_name}</p>
                             ${curr_temp}
                         </div>`;
         weather += FlippyWeather.getHighLow();
-
         weather += '</p></div>';
-        // weather += '<div id="temp"><p id="date">&nbsp</p>'  + curr_temp + '</div>';
 
-        $(elem).html(weather);
+        elem.innerHTML = weather;
+        
         if (config.renderForecast) {
-            var ulElement = `<ul id="forecast"></ul>`;
-            $(elem).append(ulElement);
+            var ulElement = document.createElement('ul');
+            ulElement.id = 'forecast';
+            elem.appendChild(ulElement);
 
             for (var i = 0; i <= 3; i++) {
-
                 var d_day_code = String(i) + '_resume';
                 var d_date = new Date(forecasts[i].datetime);
-                var forecastIcon = FlippyWeather.getWeatherIcon(config, forecasts[i].condition, hass_states)
-                var forecast = `<li>`;
-                forecast += `<p class="dayname">${regional[config.lang]['dayNames'][d_date.getDay()]}&nbsp;${d_date.getDate()}</p>
+                var forecastIcon = FlippyWeather.getWeatherIcon(config, forecasts[i].condition, hass_states);
+                
+                var listItem = document.createElement('li');
+                var forecast = `<p class="dayname">${regional[config.lang]['dayNames'][d_date.getDay()]}&nbsp;${d_date.getDate()}</p>
                                 <img src="${forecastIcon}" alt="${forecasts[i].condition}" title="${forecasts[i].condition}" />
-                                <div class="daytemp">${Math.round(forecasts[i].temperature * 100) / 100}${this.getUnit("temperature")}`
+                                <div class="daytemp">${Math.round(forecasts[i].temperature * 100) / 100}${this.getUnit("temperature")}`;
+                                
                 if (forecasts[i].templow) {
                     forecast += `&nbsp;/&nbsp;${Math.round(forecasts[i].templow * 100) / 100}${this.getUnit("temperature")}`;
                 }
-                forecast += `</div></li>`;
-                $(elem).find('#forecast').append(forecast);
+                forecast += `</div>`;
+                
+                listItem.innerHTML = forecast;
+                ulElement.appendChild(listItem);
             }
         }
         if (config.renderDetails) {
@@ -631,41 +635,12 @@ class FlippyWeather extends LitElement {
             }, 600);
 
             setTimeout(() => {
-                if (shd) shd.src = config.clockImagesPath + secondHourDigit + '-1.png';
-                if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg2.png';
-            }, 200);
-            
-            setTimeout(() => {
-                if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg3.png';
-            }, 250);
-            
-            setTimeout(() => {
-                if (shd) shd.src = config.clockImagesPath + secondHourDigit + '-2.png';
-                if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg4.png';
-            }, 400);
-            
-            setTimeout(() => {
-                if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg5.png';
-            }, 450);
-            
-            setTimeout(() => {
-                if (shd) shd.src = config.clockImagesPath + secondHourDigit + '-3.png';
-                if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg6.png';
-            }, 600);
-
-            setTimeout(() => {
-                if (fhd) fhd.src = config.clockImagesPath + now_hours.substr(0, 1) + '.png';
-            }, 800);
-            
-            setTimeout(() => {
                 if (shd) shd.src = config.clockImagesPath + now_hours.substr(1, 1) + '.png';
             }, 800);
             
             setTimeout(() => {
                 if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg1.png';
             }, 850);
-        }
-    } 'clockbg1.png') }, 850);
         }
     }
     static getUnit(measure) {
@@ -690,20 +665,26 @@ class FlippyWeather extends LitElement {
         if (sun) {
             next_rising = new Date(sun.attributes.next_rising);
             next_setting = new Date(sun.attributes.next_setting);
-            $(elem).append(`<div id="bottom">
+            
+            const bottomDiv = document.createElement('div');
+            bottomDiv.id = 'bottom';
+            bottomDiv.innerHTML = `
                 <div id="sun_details"></div>
                 <div id="wind_details"></div>
                 <div id="update">
                     <img src="${config.imagesPath}refresh_grey.png" alt="Last update" title="Last update" id="reload" />${new Date(stateObj.last_updated).toLocaleTimeString()}
                 </div>
-            </div>`);
+            `;
+            elem.appendChild(bottomDiv);
+            
             var sun_details = `<font color="orange">☀</font> <font color="green"><ha-icon icon="mdi:weather-sunset-up"></ha-icon></font>&nbsp;${next_rising.toLocaleTimeString()}&nbsp;&nbsp;&nbsp;<font color="red"><ha-icon icon="mdi:weather-sunset-down"></ha-icon></font>&nbsp;${next_setting.toLocaleTimeString()}`;
-            $(elem).find('#sun_details').append(sun_details);
-            $(elem).find('#wind_details').append(`
+            bottomDiv.querySelector('#sun_details').innerHTML = sun_details;
+            
+            bottomDiv.querySelector('#wind_details').innerHTML = `
                     <span class="ha-icon"><ha-icon icon="mdi:weather-windy"></ha-icon></span>
                     ${regional[config.lang]['windDirections'][parseInt((stateObj.attributes.wind_bearing + 11.25) / 22.5)]} ${stateObj.attributes.wind_speed} ${stateObj.attributes.wind_speed}<span class="unit">
                     ${this.getUnit("length")}/h</span>
-                `);
+                `;
         }
         return
     }
@@ -739,7 +720,31 @@ async function waitForForecasts(test) {
     const delayMs = 500;
     while (!test()) await new Promise(resolve => setTimeout(resolve, delayMs));
 }
-customElements.define("flippy-weather-card", FlippyWeather);
-    while (!test()) await new Promise(resolve => setTimeout(resolve, delayMs));
-    const delayMs = 500;
-    while (!test()) await new Promise(resolve => setTimeout(resolve, delayMs));
+customElements.define("flippyweather-card", FlippyWeather); = config.clockImagesPath + secondHourDigit + '-1.png';
+                if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg2.png';
+            }, 200);
+            
+            setTimeout(() => {
+                if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg3.png';
+            }, 250);
+            
+            setTimeout(() => {
+                if (shd) shd.src = config.clockImagesPath + secondHourDigit + '-2.png';
+                if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg4.png';
+            }, 400);
+            
+            setTimeout(() => {
+                if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg5.png';
+            }, 450);
+            
+            setTimeout(() => {
+                if (shd) shd.src = config.clockImagesPath + secondHourDigit + '-3.png';
+                if (hoursBg) hoursBg.src = config.clockImagesPath + 'clockbg6.png';
+            }, 600);
+
+            setTimeout(() => {
+                if (fhd) fhd.src = config.clockImagesPath + now_hours.substr(0, 1) + '.png';
+            }, 800);
+            
+            setTimeout(() => {
+                if (shd) shd.src

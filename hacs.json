@@ -1,7 +1,7 @@
 {
   "name": "Flippy Weather Clock",
   "content_in_root": false,
-  "filename": "flippy-flipclock-weather.js",
+  "filename": "flippyweather-clock.js",
   "country": ["ALL"],
   "homeassistant": "0.115.0",
   "render_readme": true,

@@ -15,14 +15,33 @@ A modern, animated flip clock weather card for Home Assistant. Features beautifu
 
 ## 🚀 Installation
 
-### Step 1: Download Files
+### Option A: Install via HACS (Recommended)
+
+1. **Open HACS** in Home Assistant
+2. Go to **Frontend** section
+3. Click the **⋮** menu → **Custom Repositories**
+4. Add repository URL: `https://github.com/cnewman402/flippyweather-clock`
+5. Select category: **Lovelace**
+6. Click **Add** → **Install** → **Download**
+7. **Restart Home Assistant**
+8. Clear browser cache (Ctrl+F5)
+
+### Option B: Manual Installation
+
+#### Step 1: Download Files
 Place these files in `/config/www/flippy-weather/`:
-- `flippy-flipclock-weather.js` (main file)
+- `flippyweather-clock.js` (main file)
 - `themes.js` (theme definitions)
 - `regional.js` (language support)
 - `themes/` folder (images and assets)
 
-### Step 2: Required Sensors
+#### Step 2: Register Resource
+Go to **Settings** → **Dashboards** → **Resources** → **Add Resource**:
+- **URL**: `/local/flippy-weather/flippyweather-clock.js`
+- **Type**: JavaScript Module
+
+## ⚙️ Required Sensors (Both Installation Methods)
+
 Add to your `configuration.yaml`:
 ```yaml
 sensor:
@@ -37,18 +56,9 @@ sensor:
       - 'time_utc'
 ```
 
-### Step 3: Register Resource
-Go to **Settings** → **Dashboards** → **Resources** → **Add Resource**:
-- **URL**: `/local/flippy-weather/flippy-flipclock-weather.js`
-- **Type**: JavaScript Module
+**Then restart Home Assistant**
 
-### Step 4: Add Card
-```yaml
-type: custom:flippyweather-card
-entity: weather.your_weather_provider
-```
-
-## 🎮 Configuration
+## 🎴 Add Card to Dashboard
 
 ### Basic Example
 ```yaml
@@ -121,7 +131,7 @@ theme:
 
 ```
 flippy-weather/
-├── flippy-flipclock-weather.js
+├── flippyweather-clock.js
 ├── themes.js
 ├── regional.js
 └── themes/

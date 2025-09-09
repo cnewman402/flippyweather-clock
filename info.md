@@ -18,6 +18,3 @@ A modern, animated flip clock weather card for Home Assistant with beautiful fli
 ```yaml
 type: custom:flippyweather-card
 entity: weather.your_weather_provider
-```
-
-Perfect for creating an elegant weather display with retro flip clock styling!

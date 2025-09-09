@@ -435,14 +435,11 @@ class FlippyWeather extends LitElement {
                     top: 50%;
                     left: 50%;
                     transform: translate(-50%, -50%);
-                    font-size: 0.6em;
+                    font-size: 1.5em;
                     color: white;
                     text-align: center;
-                    display: none;
+                    display: block; /* Show emoji fallbacks for now */
                     width: 40px;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                    white-space: nowrap;
                 }
                 
                 .forecast-temp {

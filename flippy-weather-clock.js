@@ -9,7 +9,7 @@ class FlippyWeatherClock extends LitElement {
   static styles = css`
     :host {
       display: block;
-      font-family: 'Roboto', sans-serif;
+      font-family: 'Courier New', monospace;
       color: var(--primary-text-color, #fff);
     }
 
@@ -49,45 +49,37 @@ class FlippyWeatherClock extends LitElement {
     }
 
     .top, .bottom, .flip {
-  position: absolute;
-  width: 100%;
-  height: 50%;
-  font-size: 3rem;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  overflow: hidden;
-}
+      position: absolute;
+      width: 100%;
+      height: 50%;
+      font-size: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
 
-.top {
-  top: 0;
-  clip-path: inset(0 0 50% 0);
-  z-index: 2;
-}
+    .top {
+      top: 0;
+      z-index: 2;
+      transform: translateY(-2px);
+    }
 
-.bottom {
-  bottom: 0;
-  clip-path: inset(50% 0 0 0);
-  z-index: 1;
-  align-items: flex-end;
-}
+    .bottom {
+      bottom: 0;
+      z-index: 1;
+      transform: translateY(2px);
+    }
 
-.flip {
-  top: 0;
-  clip-path: inset(0 0 50% 0);
-  z-index: 3;
-  transform-origin: bottom;
-  transform: rotateX(0deg);
-  backface-visibility: hidden;
-  pointer-events: none;
-  display: none;
-  animation: none;
-}
-.flip.animate {
-  display: flex;
-  animation: flipDown 0.5s ease-in-out forwards;
-}
-
+    .flip {
+      top: 0;
+      z-index: 3;
+      transform-origin: bottom;
+      transform: rotateX(0deg) translateY(-2px);
+      backface-visibility: hidden;
+      pointer-events: none;
+      display: none;
+    }
 
     .flip.animate {
       display: flex;
@@ -95,8 +87,8 @@ class FlippyWeatherClock extends LitElement {
     }
 
     @keyframes flipDown {
-      0% { transform: rotateX(0deg); }
-      100% { transform: rotateX(-90deg); }
+      0% { transform: rotateX(0deg) translateY(-2px); }
+      100% { transform: rotateX(-90deg) translateY(-2px); }
     }
 
     .weather {
@@ -169,37 +161,36 @@ class FlippyWeatherClock extends LitElement {
   }
 
   updated() {
-  const now = new Date();
-  const hours = now.getHours().toString().padStart(2, '0');
-  const minutes = now.getMinutes().toString().padStart(2, '0');
-  const allDigits = [...hours.split(''), ...minutes.split('')];
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const allDigits = [...hours.split(''), ...minutes.split('')];
 
-  this.shadowRoot.querySelectorAll('.flip-digit').forEach((el, i) => {
-    const top = el.querySelector('.top');
-    const bottom = el.querySelector('.bottom');
-    const flip = el.querySelector('.flip');
-    const newVal = allDigits[i];
+    this.shadowRoot.querySelectorAll('.flip-digit').forEach((el, i) => {
+      const top = el.querySelector('.top');
+      const bottom = el.querySelector('.bottom');
+      const flip = el.querySelector('.flip');
+      const newVal = allDigits[i];
+      const currentVal = top.textContent;
 
-    const currentVal = top.textContent;
-
-    if (currentVal !== newVal) {
-      flip.textContent = currentVal;
-      flip.style.display = 'flex';
-      flip.classList.remove('animate');
-      void flip.offsetWidth;
-      flip.classList.add('animate');
-
-      flip.addEventListener('animationend', () => {
-        top.textContent = newVal;
-        bottom.textContent = newVal;
+      if (currentVal !== newVal) {
+        flip.textContent = currentVal;
+        flip.style.display = 'flex';
         flip.classList.remove('animate');
-        flip.style.display = 'none';
-      }, { once: true });
-    }
-  });
-}
+        void flip.offsetWidth;
+        flip.classList.add('animate');
 
+        flip.addEventListener('animationend', () => {
+          top.textContent = newVal;
+          bottom.textContent = newVal;
+          flip
+          flip.classList.remove('animate');
+          flip.style.display = 'none';
+        }, { once: true });
+      }
+    });
+  }
 }
 
 customElements.define('flippy-weather-clock', FlippyWeatherClock);
-
+          

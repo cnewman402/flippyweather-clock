@@ -6,8 +6,55 @@ import {
     css
 } from "https://unpkg.com/lit-element@2.0.1/lit-element.js?module";
 
-import { regional } from './regional.js?v1.1.5';
-import { themes } from './themes.js?v1.0.2';
+// Inline regional data to avoid 404 errors
+const regional = {
+    en: {
+        days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+        months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    },
+    es: {
+        days: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+        daysShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+        months: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+        monthsShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    },
+    fr: {
+        days: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+        daysShort: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+        months: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+        monthsShort: ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
+    }
+};
+
+// Inline themes data to avoid 404 errors
+const themes = {
+    default: {
+        css: `
+            .flippy-container {
+                background: linear-gradient(135deg, #74b9ff, #0984e3);
+                color: white;
+                padding: 20px;
+                border-radius: 15px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            }
+        `
+    },
+    dusk: {
+        css: `
+            .flippy-container {
+                background: linear-gradient(135deg, #2d3436, #636e72);
+                color: white;
+                padding: 20px;
+                border-radius: 15px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            }
+        `
+    }
+};
 
 var forecastFinished = false;
 var forecasts = {};
@@ -26,7 +73,7 @@ const weatherDefaults = {
     }
 };
 
-const flippyVersion = "1.4.2";
+const flippyVersion = "1.4.3";
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
@@ -214,7 +261,7 @@ class FlippyWeather extends LitElement {
 
         return html`
             <style>
-                ${themes[this._config.theme.name]['css']}
+                ${themes[this._config.theme.name] ? themes[this._config.theme.name]['css'] : themes['default']['css']}
                 
                 .flippy-container {
                     position: relative;

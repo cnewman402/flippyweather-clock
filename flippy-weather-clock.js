@@ -39,32 +39,33 @@ class FlippyWeatherClock extends LitElement {
       position: relative;
       width: 50px;
       height: 70px;
-      font-size: 3rem;
+      background: var(--card-background-color, #222);
+      color: var(--primary-text-color, #fff);
       font-weight: bold;
       text-align: center;
       border-radius: 6px;
       overflow: hidden;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-      background: var(--card-background-color, #222);
-      color: var(--primary-text-color, #fff);
-      line-height: 70px;
     }
 
     .top, .bottom {
       position: absolute;
       width: 100%;
       height: 50%;
+      font-size: 3rem;
       overflow: hidden;
     }
 
     .top {
       top: 0;
+      line-height: 35px;
       clip-path: inset(0 0 50% 0);
       z-index: 2;
     }
 
     .bottom {
       bottom: 0;
+      line-height: 35px;
       clip-path: inset(50% 0 0 0);
       z-index: 1;
     }
@@ -75,7 +76,8 @@ class FlippyWeatherClock extends LitElement {
       left: 0;
       width: 100%;
       height: 50%;
-      line-height: 70px;
+      font-size: 3rem;
+      line-height: 35px;
       background: var(--card-background-color, #222);
       color: var(--primary-text-color, #fff);
       backface-visibility: hidden;
@@ -176,20 +178,17 @@ class FlippyWeatherClock extends LitElement {
       const top = el.querySelector('.top');
       const bottom = el.querySelector('.bottom');
       const flip = el.querySelector('.flip');
-      const newVal = allDigits[i];
-
-      if (top.textContent !== newVal) {
-        flip.textContent = top
-        flip.classList.add('animate');
-        flip.addEventListener('animationend', () => {
-          top.textContent = newVal;
-          bottom.textContent = newVal;
-          flip.classList.remove('animate');
-          flip.style.display = 'none';
-        }, { once: true });
-      }
-    });
-  }
+            flip.classList.add('animate');
+      flip.addEventListener('animationend', () => {
+        top.textContent = newVal;
+        bottom.textContent = newVal;
+        flip.classList.remove('animate');
+        flip.style.display = 'none';
+      }, { once: true });
+    }
+  });
+}
 }
 
 customElements.define('flippy-weather-clock', FlippyWeatherClock);
+

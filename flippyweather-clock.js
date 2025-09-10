@@ -234,55 +234,33 @@ class FlippyWeather extends LitElement {
     }
 
     getWeatherAnimationClass(condition) {
-        console.log(`FlippyWeather ENTRY: condition="${condition}"`);
-        
-        if (!condition) {
-            console.log(`FlippyWeather: No condition, returning empty`);
-            return '';
-        }
+        if (!condition) return '';
         
         const lowerCondition = condition.toLowerCase();
         const now = new Date();
         const hour = now.getHours();
         const isNightTime = hour < 6 || hour >= 20; // Night time between 8 PM and 6 AM
         
-        // Debug logging
-        console.log(`FlippyWeather Debug: Hour=${hour}, IsNight=${isNightTime}, Condition=${condition}, LowerCondition=${lowerCondition}`);
-        
         if (lowerCondition.includes('rain') || lowerCondition.includes('shower')) {
-            const className = `weather-rain${isNightTime ? '-night' : ''}`;
-            console.log(`FlippyWeather: Applying rain class ${className}`);
-            return className;
+            return `weather-rain${isNightTime ? '-night' : ''}`;
         }
         if (lowerCondition.includes('snow') || lowerCondition.includes('blizzard')) {
-            const className = `weather-snow${isNightTime ? '-night' : ''}`;
-            console.log(`FlippyWeather: Applying snow class ${className}`);
-            return className;
+            return `weather-snow${isNightTime ? '-night' : ''}`;
         }
         if (lowerCondition.includes('thunderstorm') || lowerCondition.includes('storm')) {
-            const className = `weather-storm${isNightTime ? '-night' : ''}`;
-            console.log(`FlippyWeather: Applying storm class ${className}`);
-            return className;
+            return `weather-storm${isNightTime ? '-night' : ''}`;
         }
         if (lowerCondition.includes('cloudy')) {
-            const className = `weather-cloudy${isNightTime ? '-night' : ''}`;
-            console.log(`FlippyWeather: Applying cloudy class ${className}`);
-            return className;
+            return `weather-cloudy${isNightTime ? '-night' : ''}`;
         }
         if (lowerCondition.includes('sunny') || lowerCondition.includes('clear')) {
-            const className = isNightTime ? 'weather-clear-night' : 'weather-sunny';
-            console.log(`FlippyWeather: Applying clear/sunny class ${className}`);
-            return className;
+            return isNightTime ? 'weather-clear-night' : 'weather-sunny';
         }
         if (lowerCondition.includes('fog') || lowerCondition.includes('mist')) {
-            const className = `weather-fog${isNightTime ? '-night' : ''}`;
-            console.log(`FlippyWeather: Applying fog class ${className}`);
-            return className;
+            return `weather-fog${isNightTime ? '-night' : ''}`;
         }
         
-        const className = isNightTime ? 'weather-default-night' : 'weather-default';
-        console.log(`FlippyWeather: Applying default class ${className}`);
-        return className;
+        return isNightTime ? 'weather-default-night' : 'weather-default';
     }
 
     getCurrentTemperature() {
@@ -348,8 +326,6 @@ class FlippyWeather extends LitElement {
         const temperature = this.getCurrentTemperature();
         const condition = this.getCurrentCondition();
         const weatherAnimationClass = this._config.animated_background ? this.getWeatherAnimationClass(condition) : '';
-        
-        console.log(`FlippyWeather Main: animated_background=${this._config.animated_background}, condition=${condition}, class=${weatherAnimationClass}`);
 
         return html`
             <style>

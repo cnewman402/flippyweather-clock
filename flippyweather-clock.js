@@ -29,7 +29,7 @@ const weatherDefaults = {
     }
 };
 
-const flippyVersion = "2.4.0";
+const flippyVersion = "2.4.1";
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
@@ -256,17 +256,17 @@ class FlippyWeather extends LitElement {
         const forecast = this.forecastData.slice(0, 4);
         
         return html`
-            <div style="display: flex; justify-content: center; gap: 20px; margin-top: 30px; flex-wrap: wrap;">
+            <div style="display: flex; justify-content: center; gap: 8px; margin-top: 30px; flex-wrap: nowrap;">
                 ${forecast.map(period => {
                     const temp = period.temperature;
                     const condition = period.shortForecast;
                     const name = period.name;
                     
                     return html`
-                        <div style="text-align: center; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 100px;">
-                            <div style="font-size: 0.8em; opacity: 0.8; margin-bottom: 8px;">${name}</div>
-                            <div style="font-size: 4em; margin: 10px 0;">${this.getWeatherEmoji(condition)}</div>
-                            <div style="font-size: 1.1em; font-weight: bold;">${temp}°</div>
+                        <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 70px; flex: 1;">
+                            <div style="font-size: 0.7em; opacity: 0.8; margin-bottom: 5px;">${name}</div>
+                            <div style="font-size: 3em; margin: 5px 0;">${this.getWeatherEmoji(condition)}</div>
+                            <div style="font-size: 1em; font-weight: bold;">${temp}°</div>
                         </div>
                     `;
                 })}

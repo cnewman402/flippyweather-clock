@@ -402,9 +402,10 @@ class FlippyWeather extends LitElement {
                 }
                 
                 .temperature {
-                    font-size: 4em;
-                    font-weight: 300;
-                    line-height: 1;
+                    font-size: 12em;
+                    font-weight: 600;
+                    line-height: 0.8;
+                    text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
                 }
                 
                 .condition {

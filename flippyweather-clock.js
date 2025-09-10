@@ -29,7 +29,7 @@ const weatherDefaults = {
     }
 };
 
-const flippyVersion = "2.2.0";
+const flippyVersion = "2.3.0";
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
@@ -307,7 +307,6 @@ class FlippyWeather extends LitElement {
         
         const temperature = this.getCurrentTemperature();
         const condition = this.getCurrentCondition();
-        const location = this._config.location_name || 'Weather';
 
         return html`
             <style>
@@ -403,12 +402,6 @@ class FlippyWeather extends LitElement {
                     text-align: center;
                 }
                 
-                .location {
-                    font-size: 1.4em;
-                    margin-bottom: 15px;
-                    font-weight: 500;
-                }
-                
                 .current-weather {
                     display: flex;
                     align-items: center;
@@ -418,7 +411,7 @@ class FlippyWeather extends LitElement {
                 }
                 
                 .weather-icon {
-                    font-size: 6em;
+                    font-size: 7em;
                     line-height: 1;
                 }
                 
@@ -483,8 +476,6 @@ class FlippyWeather extends LitElement {
                     </div>
                     
                     <div class="weather-info">
-                        <div class="location">${location}</div>
-                        
                         ${this.weatherData && this.weatherData.error ? html`
                             <div class="error-message">
                                 Weather Error: ${this.weatherData.error}

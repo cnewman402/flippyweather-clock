@@ -344,7 +344,7 @@ class FlippyWeather extends LitElement {
                     width: 100%;
                     height: 100%;
                     backface-visibility: hidden;
-                    background: linear-gradient(145deg, #2c3e50, #34495e);
+                    background: linear-gradient(145deg, #ffffff, #f8f9fa);
                     border-radius: 12px;
                     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
                     display: flex;
@@ -352,10 +352,10 @@ class FlippyWeather extends LitElement {
                     justify-content: center;
                     font-size: 3.5em;
                     font-weight: bold;
-                    color: #ecf0f1;
+                    color: #2c3e50;
                     font-family: 'Courier New', monospace;
-                    border: 2px solid #34495e;
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+                    border: 2px solid #dee2e6;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
                 }
                 
                 .flip-card-face::before {
@@ -365,7 +365,7 @@ class FlippyWeather extends LitElement {
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
+                    background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, transparent 50%, rgba(0,0,0,0.05) 100%);
                     border-radius: 12px;
                     pointer-events: none;
                 }

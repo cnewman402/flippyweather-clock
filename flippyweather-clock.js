@@ -118,6 +118,33 @@ class FlippyWeather extends LitElement {
         return emojiMap[condition] || '🌤️';
     }
 
+    renderSimpleForecast(stateObj) {
+        if (!stateObj.attributes.forecast || !Array.isArray(stateObj.attributes.forecast)) {
+            return html``;
+        }
+
+        const forecast = stateObj.attributes.forecast.slice(0, 4);
+        
+        return html`
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
+                ${forecast.map(day => {
+                    const date = new Date(day.datetime);
+                    const dayName = date.toLocaleDateString('en', { weekday: 'short' });
+                    const temp = Math.round(day.temperature);
+                    const condition = day.condition;
+                    
+                    return html`
+                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 60px;">
+                            <div style="font-size: 0.8em; opacity: 0.8; margin-bottom: 5px;">${dayName}</div>
+                            <div style="font-size: 1.5em; margin: 5px 0;">${this.getWeatherEmoji(condition)}</div>
+                            <div style="font-size: 0.9em; font-weight: bold;">${temp}°</div>
+                        </div>
+                    `;
+                })}
+            </div>
+        `;
+    }
+
     render() {
         if (!this._config || !this.hass) {
             return html`<ha-card><div style="padding: 20px;">Loading configuration...</div></ha-card>`;

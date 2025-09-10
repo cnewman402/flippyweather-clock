@@ -29,7 +29,7 @@ const weatherDefaults = {
     }
 };
 
-const flippyVersion = "2.3.0";
+const flippyVersion = "2.4.0";
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
@@ -70,12 +70,10 @@ class FlippyWeather extends LitElement {
     async connectedCallback() {
         super.connectedCallback();
         
-        // Wait for hass to be available to get coordinates
         if (this.hass) {
             this.initializeWeather();
         }
         
-        // Update time every second, weather every 10 minutes
         this.updateInterval = setInterval(() => {
             this.requestUpdate();
         }, 1000);
@@ -84,7 +82,7 @@ class FlippyWeather extends LitElement {
             if (this.hass) {
                 await this.fetchWeatherData();
             }
-        }, 600000); // 10 minutes
+        }, 600000);
     }
 
     disconnectedCallback() {
@@ -121,7 +119,6 @@ class FlippyWeather extends LitElement {
         try {
             console.log('Fetching weather data from NWS...');
             
-            // Step 1: Get grid points from coordinates
             const pointsResponse = await fetch(`https://api.weather.gov/points/${this.latitude},${this.longitude}`);
             
             if (!pointsResponse.ok) {
@@ -130,7 +127,6 @@ class FlippyWeather extends LitElement {
             
             const pointsData = await pointsResponse.json();
             
-            // Step 2: Get current conditions
             const stationsResponse = await fetch(pointsData.properties.observationStations);
             const stationsData = await stationsResponse.json();
             
@@ -144,7 +140,6 @@ class FlippyWeather extends LitElement {
                 }
             }
             
-            // Step 3: Get forecast
             const forecastResponse = await fetch(pointsData.properties.forecast);
             
             if (forecastResponse.ok) {
@@ -159,7 +154,6 @@ class FlippyWeather extends LitElement {
             
         } catch (error) {
             console.error('Error fetching weather data:', error);
-            // Don't fail silently - show error in UI
             this.weatherData = { error: error.message };
             this.requestUpdate();
         }
@@ -168,7 +162,6 @@ class FlippyWeather extends LitElement {
     updated(changedProperties) {
         super.updated(changedProperties);
         
-        // Check if any time digits changed and trigger animations
         const now = new Date();
         let hour = now.getHours();
         
@@ -187,7 +180,6 @@ class FlippyWeather extends LitElement {
             secondMinuteDigit: minuteStr[1]
         };
         
-        // Trigger animations for changed digits
         Object.keys(currentTime).forEach(key => {
             if (this.oldTime[key] !== undefined && this.oldTime[key] !== currentTime[key]) {
                 this.animateDigitFlip(key, this.oldTime[key], currentTime[key]);
@@ -201,18 +193,14 @@ class FlippyWeather extends LitElement {
         const digitElement = this.shadowRoot.querySelector(`[data-digit="${digitKey}"]`);
         if (digitElement && !this.animatingDigits.has(digitKey)) {
             this.animatingDigits.add(digitKey);
-            
-            // Create flip animation using CSS transforms
             this.performFlipAnimation(digitElement, digitKey, oldDigit, newDigit);
         }
     }
 
     performFlipAnimation(element, digitKey, oldDigit, newDigit) {
-        // CSS-based flip animation
         element.classList.add('flipping');
         
         setTimeout(() => {
-            // Update the digit content halfway through the flip
             const digitDisplay = element.querySelector('.flip-card-face');
             if (digitDisplay) {
                 digitDisplay.textContent = newDigit;
@@ -230,7 +218,6 @@ class FlippyWeather extends LitElement {
         
         const lowerCondition = condition.toLowerCase();
         
-        // Map NWS conditions to emojis
         if (lowerCondition.includes('sunny') || lowerCondition.includes('clear')) return '☀️';
         if (lowerCondition.includes('partly cloudy') || lowerCondition.includes('partly sunny')) return '⛅';
         if (lowerCondition.includes('mostly cloudy') || lowerCondition.includes('cloudy')) return '☁️';
@@ -240,14 +227,13 @@ class FlippyWeather extends LitElement {
         if (lowerCondition.includes('fog') || lowerCondition.includes('mist')) return '🌫️';
         if (lowerCondition.includes('wind')) return '💨';
         
-        return '🌤️'; // Default
+        return '🌤️';
     }
 
     getCurrentTemperature() {
         if (!this.weatherData || this.weatherData.error) return '--';
         
         if (this.weatherData.temperature && this.weatherData.temperature.value !== null) {
-            // Convert Celsius to Fahrenheit
             const celsius = this.weatherData.temperature.value;
             const fahrenheit = (celsius * 9/5) + 32;
             return Math.round(fahrenheit);
@@ -267,21 +253,20 @@ class FlippyWeather extends LitElement {
             return html``;
         }
 
-        // Take first 4 forecast periods
         const forecast = this.forecastData.slice(0, 4);
         
         return html`
-            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
+            <div style="display: flex; justify-content: center; gap: 20px; margin-top: 30px; flex-wrap: wrap;">
                 ${forecast.map(period => {
                     const temp = period.temperature;
                     const condition = period.shortForecast;
                     const name = period.name;
                     
                     return html`
-                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 65px;">
-                            <div style="font-size: 0.8em; opacity: 0.8; margin-bottom: 5px;">${name}</div>
-                            <div style="font-size: 1.5em; margin: 5px 0;">${this.getWeatherEmoji(condition)}</div>
-                            <div style="font-size: 0.9em; font-weight: bold;">${temp}°</div>
+                        <div style="text-align: center; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 100px;">
+                            <div style="font-size: 0.8em; opacity: 0.8; margin-bottom: 8px;">${name}</div>
+                            <div style="font-size: 4em; margin: 10px 0;">${this.getWeatherEmoji(condition)}</div>
+                            <div style="font-size: 1.1em; font-weight: bold;">${temp}°</div>
                         </div>
                     `;
                 })}
@@ -343,7 +328,7 @@ class FlippyWeather extends LitElement {
                     width: 100%;
                     height: 100%;
                     backface-visibility: hidden;
-                    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+                    background: rgba(255, 255, 255, 0.15);
                     border-radius: 12px;
                     box-shadow: 0 8px 25px rgba(0,0,0,0.3);
                     display: flex;
@@ -351,10 +336,11 @@ class FlippyWeather extends LitElement {
                     justify-content: center;
                     font-size: 3.5em;
                     font-weight: bold;
-                    color: #2c3e50;
+                    color: #ffffff;
                     font-family: 'Courier New', monospace;
-                    border: 2px solid #dee2e6;
-                    text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+                    border: 2px solid rgba(255, 255, 255, 0.2);
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                    backdrop-filter: blur(10px);
                 }
                 
                 .flip-card-face::before {
@@ -364,7 +350,7 @@ class FlippyWeather extends LitElement {
                     left: 0;
                     right: 0;
                     bottom: 0;
-                    background: linear-gradient(180deg, rgba(255,255,255,0.8) 0%, transparent 50%, rgba(0,0,0,0.05) 100%);
+                    background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
                     border-radius: 12px;
                     pointer-events: none;
                 }
@@ -397,7 +383,7 @@ class FlippyWeather extends LitElement {
                 }
                 
                 .weather-info {
-                    margin: 20px 0;
+                    margin: 30px 0;
                     color: white;
                     text-align: center;
                 }
@@ -406,25 +392,25 @@ class FlippyWeather extends LitElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    gap: 20px;
-                    margin: 20px 0;
+                    gap: 30px;
+                    margin: 30px 0;
                 }
                 
                 .weather-icon {
-                    font-size: 7em;
+                    font-size: 12em;
                     line-height: 1;
                 }
                 
                 .temperature {
-                    font-size: 3em;
+                    font-size: 4em;
                     font-weight: 300;
                     line-height: 1;
                 }
                 
                 .condition {
-                    font-size: 1.1em;
+                    font-size: 1.2em;
                     opacity: 0.9;
-                    margin-bottom: 10px;
+                    margin-bottom: 15px;
                     max-width: 300px;
                     margin-left: auto;
                     margin-right: auto;
@@ -492,7 +478,7 @@ class FlippyWeather extends LitElement {
                         ${this.renderForecast()}
                     </div>
                     
-                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 15px; color: white; text-align: center;">
+                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 20px; color: white; text-align: center;">
                         FlippyWeather Clock v${flippyVersion} | NWS API
                     </div>
                 </div>
@@ -501,13 +487,12 @@ class FlippyWeather extends LitElement {
     }
 
     getCardSize() {
-        return 4;
+        return 5;
     }
 
     set hass(hass) {
         this._hass = hass;
         
-        // Initialize weather data when hass first becomes available
         if (hass && !this.latitude && !this.longitude) {
             this.initializeWeather();
         }

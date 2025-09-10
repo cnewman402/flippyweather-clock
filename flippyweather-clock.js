@@ -29,7 +29,7 @@ const weatherDefaults = {
     }
 };
 
-const flippyVersion = "2.1.0";
+const flippyVersion = "2.2.0";
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
@@ -202,35 +202,27 @@ class FlippyWeather extends LitElement {
         if (digitElement && !this.animatingDigits.has(digitKey)) {
             this.animatingDigits.add(digitKey);
             
-            // Create flip animation using GitHub CDN images
+            // Create flip animation using CSS transforms
             this.performFlipAnimation(digitElement, digitKey, oldDigit, newDigit);
         }
     }
 
     performFlipAnimation(element, digitKey, oldDigit, newDigit) {
-        const clockPath = 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/themes/default/clock/';
-        
-        // Original repo used animation frames like: 01-1.png, 01-2.png, 01-3.png
-        const animationKey = oldDigit + newDigit;
-        
-        // Phase 1: Show first half of flip animation
-        element.src = `${clockPath}${animationKey}-1.png`;
+        // CSS-based flip animation
+        element.classList.add('flipping');
         
         setTimeout(() => {
-            // Phase 2: Show middle of flip
-            element.src = `${clockPath}${animationKey}-2.png`;
-        }, 100);
-        
-        setTimeout(() => {
-            // Phase 3: Show second half of flip
-            element.src = `${clockPath}${animationKey}-3.png`;
-        }, 200);
-        
-        setTimeout(() => {
-            // Final: Show the new digit
-            element.src = `${clockPath}${newDigit}.png`;
-            this.animatingDigits.delete(digitKey);
+            // Update the digit content halfway through the flip
+            const digitDisplay = element.querySelector('.flip-card-face');
+            if (digitDisplay) {
+                digitDisplay.textContent = newDigit;
+            }
         }, 300);
+        
+        setTimeout(() => {
+            element.classList.remove('flipping');
+            this.animatingDigits.delete(digitKey);
+        }, 600);
     }
 
     getWeatherEmoji(condition) {
@@ -317,16 +309,6 @@ class FlippyWeather extends LitElement {
         const condition = this.getCurrentCondition();
         const location = this._config.location_name || 'Weather';
 
-        const clockImagePath = 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/themes/default/clock/';
-
-        // Debug: Log the exact image URLs being used
-        console.log('Clock image paths:', {
-            hour0: `${clockImagePath}${hourStr[0]}.png`,
-            hour1: `${clockImagePath}${hourStr[1]}.png`,
-            minute0: `${clockImagePath}${minuteStr[0]}.png`,
-            minute1: `${clockImagePath}${minuteStr[1]}.png`
-        });
-
         return html`
             <style>
                 ${themes['default']['css']}
@@ -336,57 +318,83 @@ class FlippyWeather extends LitElement {
                     justify-content: center;
                     align-items: center;
                     margin: 20px 0;
-                    gap: 10px;
+                    gap: 15px;
                 }
                 
-                .clock-digit {
-                    position: relative;
+                .flip-card {
                     width: 80px;
                     height: 120px;
-                    display: inline-block;
-                    background-color: rgba(0, 0, 0, 0.3);
-                    border-radius: 8px;
-                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-                    overflow: hidden;
+                    perspective: 1000px;
                 }
                 
-                .digit-bg-image {
+                .flip-card-inner {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                    transition: transform 0.6s;
+                    transform-style: preserve-3d;
+                }
+                
+                .flip-card-inner.flipping {
+                    transform: rotateX(180deg);
+                }
+                
+                .flip-card-face {
+                    position: absolute;
+                    width: 100%;
+                    height: 100%;
+                    backface-visibility: hidden;
+                    background: linear-gradient(145deg, #2c3e50, #34495e);
+                    border-radius: 12px;
+                    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 3.5em;
+                    font-weight: bold;
+                    color: #ecf0f1;
+                    font-family: 'Courier New', monospace;
+                    border: 2px solid #34495e;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+                }
+                
+                .flip-card-face::before {
+                    content: '';
                     position: absolute;
                     top: 0;
                     left: 0;
-                    width: 100%;
-                    height: 100%;
-                    object-fit: contain;
-                    z-index: 1;
-                }
-                
-                .digit-text {
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%, -50%);
-                    font-size: 3em;
-                    font-weight: bold;
-                    color: white;
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-                    font-family: 'Courier New', monospace;
-                    z-index: 2;
+                    right: 0;
+                    bottom: 0;
+                    background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
+                    border-radius: 12px;
+                    pointer-events: none;
                 }
                 
                 .clock-separator {
                     width: 20px;
                     height: 120px;
-                    font-size: 3em;
+                    font-size: 4em;
                     color: white;
                     display: flex;
                     align-items: center;
                     justify-content: center;
                     animation: blink 2s infinite;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
                 }
                 
                 @keyframes blink {
                     0%, 50% { opacity: 1; }
-                    51%, 100% { opacity: 0.5; }
+                    51%, 100% { opacity: 0.3; }
+                }
+                
+                .am-pm-indicator {
+                    margin-left: 10px;
+                    font-size: 1.2em;
+                    background: rgba(255,255,255,0.2);
+                    padding: 8px 12px;
+                    border-radius: 15px;
+                    font-weight: bold;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
                 }
                 
                 .weather-info {
@@ -441,42 +449,34 @@ class FlippyWeather extends LitElement {
             <ha-card>
                 <div class="flippy-container">
                     <div class="htc-clock">
-                        <div class="clock-digit">
-                            <img src="${clockImagePath}${hourStr[0]}.png" 
-                                 class="digit-bg-image"
-                                 data-digit="firstHourDigit"
-                                 onerror="this.style.display='none'">
-                            <div class="digit-text">${hourStr[0]}</div>
+                        <div class="flip-card">
+                            <div class="flip-card-inner" data-digit="firstHourDigit">
+                                <div class="flip-card-face">${hourStr[0]}</div>
+                            </div>
                         </div>
                         
-                        <div class="clock-digit">
-                            <img src="${clockImagePath}${hourStr[1]}.png" 
-                                 class="digit-bg-image"
-                                 data-digit="secondHourDigit"
-                                 onerror="this.style.display='none'">
-                            <div class="digit-text">${hourStr[1]}</div>
+                        <div class="flip-card">
+                            <div class="flip-card-inner" data-digit="secondHourDigit">
+                                <div class="flip-card-face">${hourStr[1]}</div>
+                            </div>
                         </div>
                         
                         <div class="clock-separator">:</div>
                         
-                        <div class="clock-digit">
-                            <img src="${clockImagePath}${minuteStr[0]}.png" 
-                                 class="digit-bg-image"
-                                 data-digit="firstMinuteDigit"
-                                 onerror="this.style.display='none'">
-                            <div class="digit-text">${minuteStr[0]}</div>
+                        <div class="flip-card">
+                            <div class="flip-card-inner" data-digit="firstMinuteDigit">
+                                <div class="flip-card-face">${minuteStr[0]}</div>
+                            </div>
                         </div>
                         
-                        <div class="clock-digit">
-                            <img src="${clockImagePath}${minuteStr[1]}.png" 
-                                 class="digit-bg-image"
-                                 data-digit="secondMinuteDigit"
-                                 onerror="this.style.display='none'">
-                            <div class="digit-text">${minuteStr[1]}</div>
+                        <div class="flip-card">
+                            <div class="flip-card-inner" data-digit="secondMinuteDigit">
+                                <div class="flip-card-face">${minuteStr[1]}</div>
+                            </div>
                         </div>
                         
                         ${this._config.am_pm ? html`
-                            <div style="margin-left: 10px; font-size: 1.2em; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 15px;">
+                            <div class="am-pm-indicator">
                                 ${now.getHours() >= 12 ? 'PM' : 'AM'}
                             </div>
                         ` : ''}

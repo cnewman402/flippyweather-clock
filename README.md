@@ -21,7 +21,7 @@ A modern, animated flip clock weather card for Home Assistant. Features beautifu
 2. 🎨 Go to **Frontend** section
 3. ⚙️ Click the menu (⋮) → **Custom Repositories**
 4. 📝 Add repository URL: `https://github.com/cnewman402/flippyweather-clock`
-5. 📂 Select category: **Lovelace**
+5. 📂 Select category: **Dashboard**
 6. ⬇️ Click **Add** → **Install** → **Download**
 7. 🔄 **Restart Home Assistant**
 8. 🧹 Clear browser cache (Ctrl+F5)

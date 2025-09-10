@@ -118,6 +118,7 @@ Works with all modern browsers that support:
 - ⚙️ Verify `sensor.date_time_iso` exists in Home Assistant
 - 🕐 Check that time_date platform sensors are configured
 - 🔄 Restart Home Assistant if sensors were just added
+- 🕐 Add the Time & Date intergration here: https://www.home-assistant.io/integrations/time_date/
 
 ### 🎬 Clock animations not working
 - 🧹 Clear browser cache and reload the page

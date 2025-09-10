@@ -196,9 +196,11 @@ class FlippyWeather extends LitElement {
     }
 
     renderSimpleForecast(stateObj) {
-        if (!stateObj.attributes.forecast || !Array.isArray(stateObj.attributes.forecast)) {
-            return html``;
-        }
+    console.log('Forecast debug:', stateObj.attributes.forecast); // Add this debug line
+    
+    if (!stateObj.attributes.forecast || !Array.isArray(stateObj.attributes.forecast)) {
+        return html``;
+    }
 
         const forecast = stateObj.attributes.forecast.slice(0, 4);
         
@@ -403,7 +405,7 @@ class FlippyWeather extends LitElement {
                         
                         <div class="condition">${condition}</div>
                         
-                        ${this._config.renderForecast ? this.renderSimpleForecast(stateObj) : ''}
+                        ${this.renderSimpleForecast(stateObj)}
                     </div>
                     
                     <div style="font-size: 0.8em; opacity: 0.7; margin-top: 15px; color: white; text-align: center;">

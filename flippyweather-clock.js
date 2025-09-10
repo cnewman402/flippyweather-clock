@@ -32,7 +32,7 @@ const weatherDefaults = {
 
 const flippyVersion = "2.5.0";
 
-console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
+console.info("%c 🕐 FlippyWeather Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; border-radius: 3px 0 0 3px; padding: 1px 0;", "color: white; background: #3a7ec6; border-radius: 0 3px 3px 0; padding: 1px 0;");
 
 class FlippyWeather extends LitElement {
     constructor() {

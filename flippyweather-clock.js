@@ -418,7 +418,7 @@ class FlippyWeather extends LitElement {
                 }
                 
                 .weather-icon {
-                    font-size: 4em;
+                    font-size: 6em;
                     line-height: 1;
                 }
                 

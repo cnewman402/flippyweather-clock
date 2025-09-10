@@ -234,18 +234,55 @@ class FlippyWeather extends LitElement {
     }
 
     getWeatherAnimationClass(condition) {
-        if (!condition) return '';
+        console.log(`FlippyWeather ENTRY: condition="${condition}"`);
+        
+        if (!condition) {
+            console.log(`FlippyWeather: No condition, returning empty`);
+            return '';
+        }
         
         const lowerCondition = condition.toLowerCase();
+        const now = new Date();
+        const hour = now.getHours();
+        const isNightTime = hour < 6 || hour >= 20; // Night time between 8 PM and 6 AM
         
-        if (lowerCondition.includes('rain') || lowerCondition.includes('shower')) return 'weather-rain';
-        if (lowerCondition.includes('snow') || lowerCondition.includes('blizzard')) return 'weather-snow';
-        if (lowerCondition.includes('thunderstorm') || lowerCondition.includes('storm')) return 'weather-storm';
-        if (lowerCondition.includes('cloudy')) return 'weather-cloudy';
-        if (lowerCondition.includes('sunny') || lowerCondition.includes('clear')) return 'weather-sunny';
-        if (lowerCondition.includes('fog') || lowerCondition.includes('mist')) return 'weather-fog';
+        // Debug logging
+        console.log(`FlippyWeather Debug: Hour=${hour}, IsNight=${isNightTime}, Condition=${condition}, LowerCondition=${lowerCondition}`);
         
-        return 'weather-default';
+        if (lowerCondition.includes('rain') || lowerCondition.includes('shower')) {
+            const className = `weather-rain${isNightTime ? '-night' : ''}`;
+            console.log(`FlippyWeather: Applying rain class ${className}`);
+            return className;
+        }
+        if (lowerCondition.includes('snow') || lowerCondition.includes('blizzard')) {
+            const className = `weather-snow${isNightTime ? '-night' : ''}`;
+            console.log(`FlippyWeather: Applying snow class ${className}`);
+            return className;
+        }
+        if (lowerCondition.includes('thunderstorm') || lowerCondition.includes('storm')) {
+            const className = `weather-storm${isNightTime ? '-night' : ''}`;
+            console.log(`FlippyWeather: Applying storm class ${className}`);
+            return className;
+        }
+        if (lowerCondition.includes('cloudy')) {
+            const className = `weather-cloudy${isNightTime ? '-night' : ''}`;
+            console.log(`FlippyWeather: Applying cloudy class ${className}`);
+            return className;
+        }
+        if (lowerCondition.includes('sunny') || lowerCondition.includes('clear')) {
+            const className = isNightTime ? 'weather-clear-night' : 'weather-sunny';
+            console.log(`FlippyWeather: Applying clear/sunny class ${className}`);
+            return className;
+        }
+        if (lowerCondition.includes('fog') || lowerCondition.includes('mist')) {
+            const className = `weather-fog${isNightTime ? '-night' : ''}`;
+            console.log(`FlippyWeather: Applying fog class ${className}`);
+            return className;
+        }
+        
+        const className = isNightTime ? 'weather-default-night' : 'weather-default';
+        console.log(`FlippyWeather: Applying default class ${className}`);
+        return className;
     }
 
     getCurrentTemperature() {
@@ -488,9 +525,153 @@ class FlippyWeather extends LitElement {
                     50% { transform: translateX(20%); opacity: 0.3; }
                 }
                 
-                @keyframes fogWave {
-                    0%, 100% { transform: translateX(-20%); opacity: 0.7; }
-                    50% { transform: translateX(20%); opacity: 0.3; }
+                /* Night Mode Weather Backgrounds */
+                .weather-rain-night {
+                    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460) !important;
+                }
+                
+                .weather-rain-night::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-image: 
+                        linear-gradient(90deg, rgba(173,216,230,0.15) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(173,216,230,0.08) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(173,216,230,0.05) 1px, transparent 1px);
+                    background-size: 
+                        3px 100%,
+                        7px 100%,
+                        11px 100%;
+                    animation: rainFall 0.8s linear infinite,
+                               rainFall2 1.2s linear infinite,
+                               rainFall3 1.6s linear infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                .weather-snow-night {
+                    background: linear-gradient(135deg, #2c3e50, #34495e, #1a252f) !important;
+                }
+                
+                .weather-snow-night::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-image: 
+                        radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.8), transparent),
+                        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.6), transparent),
+                        radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.7), transparent),
+                        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.5), transparent),
+                        radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.9), transparent);
+                    background-repeat: repeat;
+                    background-size: 200px 100px;
+                    animation: snowFall 10s linear infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                .weather-cloudy-night {
+                    background: linear-gradient(135deg, #2c3e50, #34495e, #1a1a2e) !important;
+                }
+                
+                .weather-cloudy-night::before {
+                    content: '';
+                    position: absolute;
+                    top: 10%;
+                    left: -20%;
+                    width: 140%;
+                    height: 80%;
+                    background: 
+                        radial-gradient(ellipse 100px 50px at 50% 50%, rgba(169,169,169,0.2), transparent),
+                        radial-gradient(ellipse 80px 40px at 30% 40%, rgba(169,169,169,0.15), transparent),
+                        radial-gradient(ellipse 120px 60px at 70% 60%, rgba(169,169,169,0.18), transparent);
+                    animation: cloudDrift 20s ease-in-out infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                .weather-clear-night {
+                    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460) !important;
+                }
+                
+                .weather-clear-night::before {
+                    content: '';
+                    position: absolute;
+                    top: 20%;
+                    right: 20%;
+                    width: 100px;
+                    height: 100px;
+                    background: radial-gradient(circle, rgba(245,245,220,0.6) 30%, rgba(245,245,220,0.2) 50%, transparent 70%);
+                    border-radius: 50%;
+                    animation: moonGlow 6s ease-in-out infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                .weather-clear-night::after {
+                    content: '⭐';
+                    position: absolute;
+                    top: 15%;
+                    left: 20%;
+                    font-size: 1.5em;
+                    animation: twinkle 3s ease-in-out infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                @keyframes moonGlow {
+                    0%, 100% { transform: scale(1); opacity: 0.6; }
+                    50% { transform: scale(1.05); opacity: 0.8; }
+                }
+                
+                @keyframes twinkle {
+                    0%, 100% { opacity: 0.3; transform: scale(0.8); }
+                    50% { opacity: 1; transform: scale(1.2); }
+                }
+                
+                .weather-storm-night {
+                    background: linear-gradient(135deg, #0a0a0a, #1a1a1a, #2c2c2c) !important;
+                }
+                
+                .weather-storm-night::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(135,206,235,0.15);
+                    animation: lightning 2.5s infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                .weather-fog-night {
+                    background: linear-gradient(135deg, #2c3e50, #34495e, #1a252f) !important;
+                }
+                
+                .weather-fog-night::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: 
+                        linear-gradient(90deg, rgba(169,169,169,0.1) 0%, rgba(169,169,169,0.2) 50%, rgba(169,169,169,0.1) 100%);
+                    animation: fogWave 8s ease-in-out infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                .weather-default-night {
+                    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460) !important;
                 }
                 
                 /* Ensure content is above animations */
@@ -509,8 +690,8 @@ class FlippyWeather extends LitElement {
                 }
                 
                 .flip-card {
-                    width: 80px;
-                    height: 120px;
+                    width: 100px;
+                    height: 150px;
                     perspective: 1000px;
                 }
                 
@@ -537,7 +718,7 @@ class FlippyWeather extends LitElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 3.5em;
+                    font-size: 4.5em;
                     font-weight: bold;
                     color: #ffffff;
                     font-family: 'Courier New', monospace;
@@ -559,9 +740,9 @@ class FlippyWeather extends LitElement {
                 }
                 
                 .clock-separator {
-                    width: 20px;
-                    height: 120px;
-                    font-size: 4em;
+                    width: 25px;
+                    height: 150px;
+                    font-size: 5em;
                     color: white;
                     display: flex;
                     align-items: center;

@@ -6,17 +6,6 @@ import {
     css
 } from "https://unpkg.com/lit-element@2.0.1/lit-element.js?module";
 
-// Inline regional data to avoid 404 errors
-const regional = {
-    en: {
-        days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-        daysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-        months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-        monthsShort: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-    }
-};
-
-// Inline themes data to avoid 404 errors
 const themes = {
     default: {
         css: `
@@ -32,44 +21,42 @@ const themes = {
     }
 };
 
-var forecastFinished = false;
-var forecasts = {};
-
 const weatherDefaults = {
-    widgetPath: 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/',
-    lang: 'en',
+    latitude: 40.7128,  // Default to NYC
+    longitude: -74.0060,
+    location_name: 'New York, NY',
     am_pm: false,
-    svrOffset: 0,
-    renderForecast: true,
-    renderDetails: true,
-    high_low_entity: false,
     theme: {
-        name: 'default',
-        weather_icon_set: 'default'
+        name: 'default'
     }
 };
 
-const flippyVersion = "1.5.0";
+const flippyVersion = "2.0.0";
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
 class FlippyWeather extends LitElement {
     constructor() {
         super();
-        this.dataInitialized = false;
-        this.lastRenderedMinute = null;
-        this.previousTime = { hour1: null, hour2: null, minute1: null, minute2: null };
+        this.weatherData = null;
+        this.forecastData = null;
+        this.lastWeatherUpdate = 0;
+        this.previousTime = {};
         this.animatingDigits = new Set();
         this.oldTime = {};
     }
 
     static getStubConfig() {
-        return { entity: "weather.demo" };
+        return { 
+            latitude: 40.7128,
+            longitude: -74.0060,
+            location_name: 'New York, NY'
+        };
     }
 
     setConfig(config) {
-        if (!config.entity) {
-            throw new Error("You need to define an entity");
+        if (!config.latitude || !config.longitude) {
+            throw new Error("You need to define latitude and longitude");
         }
         
         var defaultConfig = {};
@@ -83,26 +70,82 @@ class FlippyWeather extends LitElement {
             }
         }
         
-        // Force GitHub CDN path
-        defaultConfig.widgetPath = 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/';
-        
         this._config = defaultConfig;
     }
 
     async connectedCallback() {
         super.connectedCallback();
         
-        console.log('FlippyWeather: Using GitHub CDN for assets');
+        console.log('FlippyWeather: Using NWS API with coordinates:', this._config.latitude, this._config.longitude);
         
+        // Initial weather fetch
+        await this.fetchWeatherData();
+        
+        // Update time every second, weather every 10 minutes
         this.updateInterval = setInterval(() => {
             this.requestUpdate();
         }, 1000);
+        
+        this.weatherInterval = setInterval(async () => {
+            await this.fetchWeatherData();
+        }, 600000); // 10 minutes
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
+        }
+        if (this.weatherInterval) {
+            clearInterval(this.weatherInterval);
+        }
+    }
+
+    async fetchWeatherData() {
+        try {
+            console.log('Fetching weather data from NWS...');
+            
+            // Step 1: Get grid points from coordinates
+            const pointsResponse = await fetch(`https://api.weather.gov/points/${this._config.latitude},${this._config.longitude}`);
+            
+            if (!pointsResponse.ok) {
+                throw new Error(`Points API error: ${pointsResponse.status}`);
+            }
+            
+            const pointsData = await pointsResponse.json();
+            
+            // Step 2: Get current conditions
+            const stationsResponse = await fetch(pointsData.properties.observationStations);
+            const stationsData = await stationsResponse.json();
+            
+            if (stationsData.features && stationsData.features.length > 0) {
+                const stationId = stationsData.features[0].properties.stationIdentifier;
+                const currentResponse = await fetch(`https://api.weather.gov/stations/${stationId}/observations/latest`);
+                
+                if (currentResponse.ok) {
+                    const currentData = await currentResponse.json();
+                    this.weatherData = currentData.properties;
+                }
+            }
+            
+            // Step 3: Get forecast
+            const forecastResponse = await fetch(pointsData.properties.forecast);
+            
+            if (forecastResponse.ok) {
+                const forecastData = await forecastResponse.json();
+                this.forecastData = forecastData.properties.periods;
+            }
+            
+            this.lastWeatherUpdate = Date.now();
+            this.requestUpdate();
+            
+            console.log('Weather data updated successfully');
+            
+        } catch (error) {
+            console.error('Error fetching weather data:', error);
+            // Don't fail silently - show error in UI
+            this.weatherData = { error: error.message };
+            this.requestUpdate();
         }
     }
 
@@ -175,46 +218,60 @@ class FlippyWeather extends LitElement {
     }
 
     getWeatherEmoji(condition) {
-        const emojiMap = {
-            'clear-night': '🌙',
-            'cloudy': '☁️',
-            'partlycloudy': '⛅',
-            'sunny': '☀️',
-            'rainy': '🌧️',
-            'pouring': '🌧️',
-            'fog': '🌫️',
-            'hail': '🌨️',
-            'lightning': '⛈️',
-            'lightning-rainy': '⛈️',
-            'snowy': '❄️',
-            'snowy-rainy': '🌨️',
-            'windy': '💨',
-            'windy-variant': '💨',
-            'exceptional': '🌡️'
-        };
-        return emojiMap[condition] || '🌤️';
+        if (!condition) return '🌤️';
+        
+        const lowerCondition = condition.toLowerCase();
+        
+        // Map NWS conditions to emojis
+        if (lowerCondition.includes('sunny') || lowerCondition.includes('clear')) return '☀️';
+        if (lowerCondition.includes('partly cloudy') || lowerCondition.includes('partly sunny')) return '⛅';
+        if (lowerCondition.includes('mostly cloudy') || lowerCondition.includes('cloudy')) return '☁️';
+        if (lowerCondition.includes('rain') || lowerCondition.includes('shower')) return '🌧️';
+        if (lowerCondition.includes('thunderstorm') || lowerCondition.includes('storm')) return '⛈️';
+        if (lowerCondition.includes('snow') || lowerCondition.includes('blizzard')) return '❄️';
+        if (lowerCondition.includes('fog') || lowerCondition.includes('mist')) return '🌫️';
+        if (lowerCondition.includes('wind')) return '💨';
+        
+        return '🌤️'; // Default
     }
 
-    renderSimpleForecast(stateObj) {
-    console.log('Forecast debug:', stateObj.attributes.forecast); // Add this debug line
-    
-    if (!stateObj.attributes.forecast || !Array.isArray(stateObj.attributes.forecast)) {
-        return html``;
+    getCurrentTemperature() {
+        if (!this.weatherData || this.weatherData.error) return '--';
+        
+        if (this.weatherData.temperature && this.weatherData.temperature.value !== null) {
+            // Convert Celsius to Fahrenheit
+            const celsius = this.weatherData.temperature.value;
+            const fahrenheit = (celsius * 9/5) + 32;
+            return Math.round(fahrenheit);
+        }
+        
+        return '--';
     }
 
-        const forecast = stateObj.attributes.forecast.slice(0, 4);
+    getCurrentCondition() {
+        if (!this.weatherData || this.weatherData.error) return 'Loading...';
+        
+        return this.weatherData.textDescription || 'Unknown';
+    }
+
+    renderForecast() {
+        if (!this.forecastData || this.forecastData.length === 0) {
+            return html``;
+        }
+
+        // Take first 4 forecast periods
+        const forecast = this.forecastData.slice(0, 4);
         
         return html`
             <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
-                ${forecast.map(day => {
-                    const date = new Date(day.datetime);
-                    const dayName = date.toLocaleDateString('en', { weekday: 'short' });
-                    const temp = Math.round(day.temperature);
-                    const condition = day.condition;
+                ${forecast.map(period => {
+                    const temp = period.temperature;
+                    const condition = period.shortForecast;
+                    const name = period.name;
                     
                     return html`
-                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 60px; transition: all 0.3s ease;">
-                            <div style="font-size: 0.8em; opacity: 0.8; margin-bottom: 5px;">${dayName}</div>
+                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 65px;">
+                            <div style="font-size: 0.8em; opacity: 0.8; margin-bottom: 5px;">${name}</div>
                             <div style="font-size: 1.5em; margin: 5px 0;">${this.getWeatherEmoji(condition)}</div>
                             <div style="font-size: 0.9em; font-weight: bold;">${temp}°</div>
                         </div>
@@ -225,19 +282,8 @@ class FlippyWeather extends LitElement {
     }
 
     render() {
-        if (!this._config || !this.hass) {
+        if (!this._config) {
             return html`<ha-card><div style="padding: 20px;">Loading configuration...</div></ha-card>`;
-        }
-
-        const stateObj = this.hass.states[this._config.entity];
-        const timeObj = this.hass.states["sensor.date_time_iso"];
-        
-        if (!stateObj) {
-            return html`<ha-card><div style="padding: 20px; color: red;">Weather entity not found: ${this._config.entity}</div></ha-card>`;
-        }
-
-        if (!timeObj) {
-            return html`<ha-card><div style="padding: 20px; color: orange;">Time sensor not found. Add time_date sensors to configuration.yaml</div></ha-card>`;
         }
 
         const now = new Date();
@@ -251,9 +297,9 @@ class FlippyWeather extends LitElement {
         const hourStr = hour < 10 ? "0" + hour : "" + hour;
         const minuteStr = now.getMinutes() < 10 ? "0" + now.getMinutes() : "" + now.getMinutes();
         
-        const temperature = Math.round(stateObj.attributes.temperature);
-        const condition = stateObj.state;
-        const location = stateObj.attributes.friendly_name;
+        const temperature = this.getCurrentTemperature();
+        const condition = this.getCurrentCondition();
+        const location = this._config.location_name || 'Weather';
 
         const clockImagePath = 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/themes/default/clock/';
 
@@ -335,27 +381,24 @@ class FlippyWeather extends LitElement {
                 }
                 
                 .condition {
-                    font-size: 1.2em;
-                    text-transform: capitalize;
+                    font-size: 1.1em;
                     opacity: 0.9;
                     margin-bottom: 10px;
+                    max-width: 300px;
+                    margin-left: auto;
+                    margin-right: auto;
                 }
                 
-                .forecast-card {
-                    background: rgba(255,255,255,0.1);
+                .error-message {
+                    background: rgba(255, 0, 0, 0.2);
+                    border: 1px solid rgba(255, 0, 0, 0.5);
                     border-radius: 8px;
                     padding: 10px;
-                    min-width: 60px;
-                    transition: all 0.3s ease;
-                    cursor: pointer;
-                }
-                
-                .forecast-card:hover {
-                    background: rgba(255,255,255,0.2);
-                    transform: translateY(-2px);
+                    margin: 10px 0;
+                    font-size: 0.9em;
                 }
             </style>
-            <ha-card @click="${this._handleClick}">
+            <ha-card>
                 <div class="flippy-container">
                     <div class="htc-clock">
                         <div class="clock-digit">
@@ -398,6 +441,12 @@ class FlippyWeather extends LitElement {
                     <div class="weather-info">
                         <div class="location">${location}</div>
                         
+                        ${this.weatherData && this.weatherData.error ? html`
+                            <div class="error-message">
+                                Weather Error: ${this.weatherData.error}
+                            </div>
+                        ` : ''}
+                        
                         <div class="current-weather">
                             <div class="weather-icon">${this.getWeatherEmoji(condition)}</div>
                             <div class="temperature">${temperature}°</div>
@@ -405,37 +454,19 @@ class FlippyWeather extends LitElement {
                         
                         <div class="condition">${condition}</div>
                         
-                        ${this.renderSimpleForecast(stateObj)}
+                        ${this.renderForecast()}
                     </div>
                     
                     <div style="font-size: 0.8em; opacity: 0.7; margin-top: 15px; color: white; text-align: center;">
-                        FlippyWeather Clock v${flippyVersion}
+                        FlippyWeather Clock v${flippyVersion} | NWS API
                     </div>
                 </div>
             </ha-card>
         `;
     }
 
-    _handleClick() {
-        const event = new Event("hass-more-info", {
-            bubbles: true,
-            composed: true
-        });
-        event.detail = { entityId: this._config.entity };
-        this.dispatchEvent(event);
-    }
-
     getCardSize() {
         return 4;
-    }
-
-    set hass(hass) {
-        this._hass = hass;
-        this.requestUpdate();
-    }
-
-    get hass() {
-        return this._hass;
     }
 }
 

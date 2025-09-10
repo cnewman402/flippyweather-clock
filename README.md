@@ -3,7 +3,7 @@
 ## Screenshots
 
 ### Day Mode
-(Screenshot Coming soon)
+![Day Mode Mode](screenshots/day1.png)
 
 ### Night Mode  
 ![Night Mode](screenshots/night1.png)

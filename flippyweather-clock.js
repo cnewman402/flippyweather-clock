@@ -311,6 +311,8 @@ class FlippyWeather extends LitElement {
         const temperature = this.getCurrentTemperature();
         const condition = this.getCurrentCondition();
         const weatherAnimationClass = this._config.animated_background ? this.getWeatherAnimationClass(condition) : '';
+        
+        console.log(`FlippyWeather Main: animated_background=${this._config.animated_background}, condition=${condition}, class=${weatherAnimationClass}`);
 
         return html`
             <style>

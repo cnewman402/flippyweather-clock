@@ -22,9 +22,7 @@ const themes = {
 };
 
 const weatherDefaults = {
-    latitude: 40.7128,  // Default to NYC
-    longitude: -74.0060,
-    location_name: 'New York, NY',
+    location_name: 'Weather',
     am_pm: false,
     theme: {
         name: 'default'
@@ -44,21 +42,17 @@ class FlippyWeather extends LitElement {
         this.previousTime = {};
         this.animatingDigits = new Set();
         this.oldTime = {};
+        this.latitude = null;
+        this.longitude = null;
     }
 
     static getStubConfig() {
         return { 
-            latitude: 40.7128,
-            longitude: -74.0060,
-            location_name: 'New York, NY'
+            location_name: 'Home Assistant Location'
         };
     }
 
     setConfig(config) {
-        if (!config.latitude || !config.longitude) {
-            throw new Error("You need to define latitude and longitude");
-        }
-        
         var defaultConfig = {};
         for (const property in config) {
             defaultConfig[property] = config[property];
@@ -76,10 +70,10 @@ class FlippyWeather extends LitElement {
     async connectedCallback() {
         super.connectedCallback();
         
-        console.log('FlippyWeather: Using NWS API with coordinates:', this._config.latitude, this._config.longitude);
-        
-        // Initial weather fetch
-        await this.fetchWeatherData();
+        // Wait for hass to be available to get coordinates
+        if (this.hass) {
+            this.initializeWeather();
+        }
         
         // Update time every second, weather every 10 minutes
         this.updateInterval = setInterval(() => {
@@ -87,7 +81,9 @@ class FlippyWeather extends LitElement {
         }, 1000);
         
         this.weatherInterval = setInterval(async () => {
-            await this.fetchWeatherData();
+            if (this.hass) {
+                await this.fetchWeatherData();
+            }
         }, 600000); // 10 minutes
     }
 
@@ -101,12 +97,32 @@ class FlippyWeather extends LitElement {
         }
     }
 
+    async initializeWeather() {
+        const lat = this.hass.config.latitude;
+        const lon = this.hass.config.longitude;
+        
+        console.log('FlippyWeather: Using Home Assistant coordinates:', lat, lon);
+        
+        if (lat && lon) {
+            this.latitude = lat;
+            this.longitude = lon;
+            await this.fetchWeatherData();
+        } else {
+            console.error('FlippyWeather: Could not get coordinates from Home Assistant');
+        }
+    }
+
     async fetchWeatherData() {
+        if (!this.latitude || !this.longitude) {
+            console.error('FlippyWeather: No coordinates available');
+            return;
+        }
+        
         try {
             console.log('Fetching weather data from NWS...');
             
             // Step 1: Get grid points from coordinates
-            const pointsResponse = await fetch(`https://api.weather.gov/points/${this._config.latitude},${this._config.longitude}`);
+            const pointsResponse = await fetch(`https://api.weather.gov/points/${this.latitude},${this.longitude}`);
             
             if (!pointsResponse.ok) {
                 throw new Error(`Points API error: ${pointsResponse.status}`);
@@ -467,6 +483,21 @@ class FlippyWeather extends LitElement {
 
     getCardSize() {
         return 4;
+    }
+
+    set hass(hass) {
+        this._hass = hass;
+        
+        // Initialize weather data when hass first becomes available
+        if (hass && !this.latitude && !this.longitude) {
+            this.initializeWeather();
+        }
+        
+        this.requestUpdate();
+    }
+
+    get hass() {
+        return this._hass;
     }
 }
 

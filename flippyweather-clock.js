@@ -24,12 +24,13 @@ const themes = {
 const weatherDefaults = {
     location_name: 'Weather',
     am_pm: false,
+    animated_background: true,
     theme: {
         name: 'default'
     }
 };
 
-const flippyVersion = "2.4.1";
+const flippyVersion = "2.5.0";
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
@@ -44,11 +45,13 @@ class FlippyWeather extends LitElement {
         this.oldTime = {};
         this.latitude = null;
         this.longitude = null;
+        this.currentCondition = '';
     }
 
     static getStubConfig() {
         return { 
-            location_name: 'Home Assistant Location'
+            location_name: 'Home Assistant Location',
+            animated_background: true
         };
     }
 
@@ -230,6 +233,21 @@ class FlippyWeather extends LitElement {
         return '🌤️';
     }
 
+    getWeatherAnimationClass(condition) {
+        if (!condition) return '';
+        
+        const lowerCondition = condition.toLowerCase();
+        
+        if (lowerCondition.includes('rain') || lowerCondition.includes('shower')) return 'weather-rain';
+        if (lowerCondition.includes('snow') || lowerCondition.includes('blizzard')) return 'weather-snow';
+        if (lowerCondition.includes('thunderstorm') || lowerCondition.includes('storm')) return 'weather-storm';
+        if (lowerCondition.includes('cloudy')) return 'weather-cloudy';
+        if (lowerCondition.includes('sunny') || lowerCondition.includes('clear')) return 'weather-sunny';
+        if (lowerCondition.includes('fog') || lowerCondition.includes('mist')) return 'weather-fog';
+        
+        return 'weather-default';
+    }
+
     getCurrentTemperature() {
         if (!this.weatherData || this.weatherData.error) return '--';
         
@@ -292,10 +310,188 @@ class FlippyWeather extends LitElement {
         
         const temperature = this.getCurrentTemperature();
         const condition = this.getCurrentCondition();
+        const weatherAnimationClass = this._config.animated_background ? this.getWeatherAnimationClass(condition) : '';
 
         return html`
             <style>
                 ${themes['default']['css']}
+                
+                .flippy-container {
+                    position: relative;
+                    overflow: hidden;
+                    transition: background 1s ease-in-out;
+                }
+                
+                /* Animated Weather Backgrounds */
+                .weather-rain {
+                    background: linear-gradient(135deg, #4a90e2, #7b68ee, #2c3e50) !important;
+                }
+                
+                .weather-rain::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-image: 
+                        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+                    background-size: 
+                        3px 100%,
+                        7px 100%,
+                        11px 100%;
+                    animation: rainFall 0.8s linear infinite,
+                               rainFall2 1.2s linear infinite,
+                               rainFall3 1.6s linear infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                @keyframes rainFall {
+                    0% { transform: translateY(-100%); }
+                    100% { transform: translateY(100%); }
+                }
+                
+                @keyframes rainFall2 {
+                    0% { transform: translateY(-100%) translateX(-2px); }
+                    100% { transform: translateY(100%) translateX(-2px); }
+                }
+                
+                @keyframes rainFall3 {
+                    0% { transform: translateY(-100%) translateX(2px); }
+                    100% { transform: translateY(100%) translateX(2px); }
+                }
+                
+                .weather-snow {
+                    background: linear-gradient(135deg, #e6e9f0, #b8bcc8, #4a5568) !important;
+                }
+                
+                .weather-snow::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-image: 
+                        radial-gradient(2px 2px at 20px 30px, white, transparent),
+                        radial-gradient(2px 2px at 40px 70px, white, transparent),
+                        radial-gradient(1px 1px at 90px 40px, white, transparent),
+                        radial-gradient(1px 1px at 130px 80px, white, transparent),
+                        radial-gradient(2px 2px at 160px 30px, white, transparent);
+                    background-repeat: repeat;
+                    background-size: 200px 100px;
+                    animation: snowFall 10s linear infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                @keyframes snowFall {
+                    0% { transform: translateY(-100%); }
+                    100% { transform: translateY(100%); }
+                }
+                
+                .weather-cloudy {
+                    background: linear-gradient(135deg, #bdc3c7, #95a5a6, #34495e) !important;
+                }
+                
+                .weather-cloudy::before {
+                    content: '';
+                    position: absolute;
+                    top: 10%;
+                    left: -20%;
+                    width: 140%;
+                    height: 80%;
+                    background: 
+                        radial-gradient(ellipse 100px 50px at 50% 50%, rgba(255,255,255,0.3), transparent),
+                        radial-gradient(ellipse 80px 40px at 30% 40%, rgba(255,255,255,0.2), transparent),
+                        radial-gradient(ellipse 120px 60px at 70% 60%, rgba(255,255,255,0.25), transparent);
+                    animation: cloudDrift 20s ease-in-out infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                @keyframes cloudDrift {
+                    0%, 100% { transform: translateX(-10px); }
+                    50% { transform: translateX(10px); }
+                }
+                
+                .weather-sunny {
+                    background: linear-gradient(135deg, #f39c12, #e74c3c, #f1c40f) !important;
+                }
+                
+                .weather-sunny::before {
+                    content: '';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    width: 200px;
+                    height: 200px;
+                    margin: -100px 0 0 -100px;
+                    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+                    animation: sunGlow 4s ease-in-out infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                @keyframes sunGlow {
+                    0%, 100% { transform: scale(1); opacity: 0.3; }
+                    50% { transform: scale(1.1); opacity: 0.6; }
+                }
+                
+                .weather-storm {
+                    background: linear-gradient(135deg, #2c3e50, #34495e, #1a1a2e) !important;
+                }
+                
+                .weather-storm::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(255,255,255,0.1);
+                    animation: lightning 3s infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                @keyframes lightning {
+                    0%, 90%, 100% { opacity: 0; }
+                    5%, 10% { opacity: 1; }
+                }
+                
+                .weather-fog {
+                    background: linear-gradient(135deg, #95a5a6, #bdc3c7, #ecf0f1) !important;
+                }
+                
+                .weather-fog::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: 
+                        linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.1) 100%);
+                    animation: fogWave 8s ease-in-out infinite;
+                    pointer-events: none;
+                    z-index: 1;
+                }
+                
+                @keyframes fogWave {
+                    0%, 100% { transform: translateX(-20%); opacity: 0.7; }
+                    50% { transform: translateX(20%); opacity: 0.3; }
+                }
+                
+                /* Ensure content is above animations */
+                .htc-clock,
+                .weather-info {
+                    position: relative;
+                    z-index: 2;
+                }
                 
                 .htc-clock {
                     display: flex;
@@ -427,7 +623,7 @@ class FlippyWeather extends LitElement {
                 }
             </style>
             <ha-card>
-                <div class="flippy-container">
+                <div class="flippy-container ${weatherAnimationClass}">
                     <div class="htc-clock">
                         <div class="flip-card">
                             <div class="flip-card-inner" data-digit="firstHourDigit">
@@ -479,7 +675,7 @@ class FlippyWeather extends LitElement {
                         ${this.renderForecast()}
                     </div>
                     
-                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 20px; color: white; text-align: center;">
+                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 20px; color: white; text-align: center; position: relative; z-index: 2;">
                         FlippyWeather Clock v${flippyVersion} | NWS API
                     </div>
                 </div>

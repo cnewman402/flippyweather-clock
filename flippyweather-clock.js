@@ -282,7 +282,7 @@ class FlippyWeather extends LitElement {
                     
                     return html`
                         <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 70px; flex: 1;">
-                            <div style="font-size: 0.7em; opacity: 0.8; margin-bottom: 5px;">${name}</div>
+                            <div style="font-size: 0.8em; opacity: 0.9; margin-bottom: 5px; font-weight: bold;">${name}</div>
                             <div style="font-size: 3em; margin: 5px 0;">${this.getWeatherEmoji(condition)}</div>
                             <div style="font-size: 1em; font-weight: bold;">${temp}°</div>
                         </div>

@@ -525,6 +525,23 @@ class FlippyWeather extends LitElement {
                     
                     ${this._config.renderForecast ? this.renderForecast(stateObj) : ''}
                     
+                    <!-- Force show a test forecast to debug -->
+                    <div class="test-forecast" style="margin: 20px 0; color: white;">
+                        <div style="font-size: 1.2em; margin-bottom: 10px;">Test Forecast:</div>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5em;">☀️</div>
+                                <div>Today</div>
+                                <div>25°</div>
+                            </div>
+                            <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                <div style="font-size: 1.5em;">⛅</div>
+                                <div>Tomorrow</div>
+                                <div>22°</div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <div style="font-size: 0.8em; opacity: 0.7; margin-top: 15px; color: white;">
                         FlippyWeather Clock v${flippyVersion}
                     </div>

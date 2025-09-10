@@ -1,5 +1,13 @@
 # 🌤️ FlippyWeather Clock
 
+## Screenshots
+
+### Day Mode
+(Coming soon)
+
+### Night Mode  
+![Night Mode](screenshots/night1.png)
+
 A modern, animated flip clock weather card for Home Assistant. Features beautiful flip animations, real-time weather forecasting, and dynamic animated backgrounds that change based on weather conditions and time of day.
 
 ![FlippyWeather Clock](https://img.shields.io/badge/Home%20Assistant-Compatible-blue) ![Version](https://img.shields.io/badge/Version-2.5.0-green) ![No Dependencies](https://img.shields.io/badge/jQuery-Free-red) ![AI Powered](https://img.shields.io/badge/Built%20with-Claude.ai-orange)

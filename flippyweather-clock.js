@@ -486,6 +486,11 @@ class FlippyWeather extends LitElement {
                     50% { transform: translateX(20%); opacity: 0.3; }
                 }
                 
+                @keyframes fogWave {
+                    0%, 100% { transform: translateX(-20%); opacity: 0.7; }
+                    50% { transform: translateX(20%); opacity: 0.3; }
+                }
+                
                 /* Ensure content is above animations */
                 .htc-clock,
                 .weather-info {

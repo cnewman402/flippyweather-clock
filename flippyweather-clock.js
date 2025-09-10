@@ -29,7 +29,7 @@ const weatherDefaults = {
     }
 };
 
-const flippyVersion = "2.0.0";
+const flippyVersion = "2.1.0";
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
@@ -214,21 +214,21 @@ class FlippyWeather extends LitElement {
         const animationKey = oldDigit + newDigit;
         
         // Phase 1: Show first half of flip animation
-        element.style.backgroundImage = `url(${clockPath}${animationKey}-1.png)`;
+        element.src = `${clockPath}${animationKey}-1.png`;
         
         setTimeout(() => {
             // Phase 2: Show middle of flip
-            element.style.backgroundImage = `url(${clockPath}${animationKey}-2.png)`;
+            element.src = `${clockPath}${animationKey}-2.png`;
         }, 100);
         
         setTimeout(() => {
             // Phase 3: Show second half of flip
-            element.style.backgroundImage = `url(${clockPath}${animationKey}-3.png)`;
+            element.src = `${clockPath}${animationKey}-3.png`;
         }, 200);
         
         setTimeout(() => {
             // Final: Show the new digit
-            element.style.backgroundImage = `url(${clockPath}${newDigit}.png)`;
+            element.src = `${clockPath}${newDigit}.png`;
             this.animatingDigits.delete(digitKey);
         }, 300);
     }
@@ -319,6 +319,14 @@ class FlippyWeather extends LitElement {
 
         const clockImagePath = 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/themes/default/clock/';
 
+        // Debug: Log the exact image URLs being used
+        console.log('Clock image paths:', {
+            hour0: `${clockImagePath}${hourStr[0]}.png`,
+            hour1: `${clockImagePath}${hourStr[1]}.png`,
+            minute0: `${clockImagePath}${minuteStr[0]}.png`,
+            minute1: `${clockImagePath}${minuteStr[1]}.png`
+        });
+
         return html`
             <style>
                 ${themes['default']['css']}
@@ -335,18 +343,34 @@ class FlippyWeather extends LitElement {
                     position: relative;
                     width: 80px;
                     height: 120px;
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    background-position: center;
                     display: inline-block;
+                    background-color: rgba(0, 0, 0, 0.3);
+                    border-radius: 8px;
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                    overflow: hidden;
                 }
                 
-                .digit-image {
+                .digit-bg-image {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
                     width: 100%;
                     height: 100%;
-                    background-size: contain;
-                    background-repeat: no-repeat;
-                    background-position: center;
+                    object-fit: contain;
+                    z-index: 1;
+                }
+                
+                .digit-text {
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    font-size: 3em;
+                    font-weight: bold;
+                    color: white;
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+                    font-family: 'Courier New', monospace;
+                    z-index: 2;
                 }
                 
                 .clock-separator {
@@ -418,37 +442,37 @@ class FlippyWeather extends LitElement {
                 <div class="flippy-container">
                     <div class="htc-clock">
                         <div class="clock-digit">
-                            <div class="digit-image" 
+                            <img src="${clockImagePath}${hourStr[0]}.png" 
+                                 class="digit-bg-image"
                                  data-digit="firstHourDigit"
-                                 style="background-image: url('${clockImagePath}${hourStr[0]}.png')">
-                                ${hourStr[0]}
-                            </div>
+                                 onerror="this.style.display='none'">
+                            <div class="digit-text">${hourStr[0]}</div>
                         </div>
                         
                         <div class="clock-digit">
-                            <div class="digit-image" 
+                            <img src="${clockImagePath}${hourStr[1]}.png" 
+                                 class="digit-bg-image"
                                  data-digit="secondHourDigit"
-                                 style="background-image: url('${clockImagePath}${hourStr[1]}.png')">
-                                ${hourStr[1]}
-                            </div>
+                                 onerror="this.style.display='none'">
+                            <div class="digit-text">${hourStr[1]}</div>
                         </div>
                         
                         <div class="clock-separator">:</div>
                         
                         <div class="clock-digit">
-                            <div class="digit-image" 
+                            <img src="${clockImagePath}${minuteStr[0]}.png" 
+                                 class="digit-bg-image"
                                  data-digit="firstMinuteDigit"
-                                 style="background-image: url('${clockImagePath}${minuteStr[0]}.png')">
-                                ${minuteStr[0]}
-                            </div>
+                                 onerror="this.style.display='none'">
+                            <div class="digit-text">${minuteStr[0]}</div>
                         </div>
                         
                         <div class="clock-digit">
-                            <div class="digit-image" 
+                            <img src="${clockImagePath}${minuteStr[1]}.png" 
+                                 class="digit-bg-image"
                                  data-digit="secondMinuteDigit"
-                                 style="background-image: url('${clockImagePath}${minuteStr[1]}.png')">
-                                ${minuteStr[1]}
-                            </div>
+                                 onerror="this.style.display='none'">
+                            <div class="digit-text">${minuteStr[1]}</div>
                         </div>
                         
                         ${this._config.am_pm ? html`

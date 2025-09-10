@@ -49,7 +49,7 @@ const weatherDefaults = {
     }
 };
 
-const flippyVersion = "1.4.5";
+const flippyVersion = "1.5.0";
 
 console.info("%c Flippy Flip Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; ", "color: white; background: #3a7ec6; ");
 
@@ -106,6 +106,74 @@ class FlippyWeather extends LitElement {
         }
     }
 
+    updated(changedProperties) {
+        super.updated(changedProperties);
+        
+        // Check if any time digits changed and trigger animations
+        const now = new Date();
+        let hour = now.getHours();
+        
+        if (this._config.am_pm) {
+            hour = hour > 12 ? hour - 12 : hour;
+            if (hour === 0) hour = 12;
+        }
+        
+        const hourStr = hour < 10 ? "0" + hour : "" + hour;
+        const minuteStr = now.getMinutes() < 10 ? "0" + now.getMinutes() : "" + now.getMinutes();
+        
+        const currentTime = {
+            firstHourDigit: hourStr[0],
+            secondHourDigit: hourStr[1],
+            firstMinuteDigit: minuteStr[0],
+            secondMinuteDigit: minuteStr[1]
+        };
+        
+        // Trigger animations for changed digits
+        Object.keys(currentTime).forEach(key => {
+            if (this.oldTime[key] !== undefined && this.oldTime[key] !== currentTime[key]) {
+                this.animateDigitFlip(key, this.oldTime[key], currentTime[key]);
+            }
+        });
+        
+        this.oldTime = currentTime;
+    }
+
+    animateDigitFlip(digitKey, oldDigit, newDigit) {
+        const digitElement = this.shadowRoot.querySelector(`[data-digit="${digitKey}"]`);
+        if (digitElement && !this.animatingDigits.has(digitKey)) {
+            this.animatingDigits.add(digitKey);
+            
+            // Create flip animation using GitHub CDN images
+            this.performFlipAnimation(digitElement, digitKey, oldDigit, newDigit);
+        }
+    }
+
+    performFlipAnimation(element, digitKey, oldDigit, newDigit) {
+        const clockPath = 'https://raw.githubusercontent.com/cnewman402/flippyweather-clock/main/themes/default/clock/';
+        
+        // Original repo used animation frames like: 01-1.png, 01-2.png, 01-3.png
+        const animationKey = oldDigit + newDigit;
+        
+        // Phase 1: Show first half of flip animation
+        element.style.backgroundImage = `url(${clockPath}${animationKey}-1.png)`;
+        
+        setTimeout(() => {
+            // Phase 2: Show middle of flip
+            element.style.backgroundImage = `url(${clockPath}${animationKey}-2.png)`;
+        }, 100);
+        
+        setTimeout(() => {
+            // Phase 3: Show second half of flip
+            element.style.backgroundImage = `url(${clockPath}${animationKey}-3.png)`;
+        }, 200);
+        
+        setTimeout(() => {
+            // Final: Show the new digit
+            element.style.backgroundImage = `url(${clockPath}${newDigit}.png)`;
+            this.animatingDigits.delete(digitKey);
+        }, 300);
+    }
+
     getWeatherEmoji(condition) {
         const emojiMap = {
             'clear-night': '🌙',
@@ -113,7 +181,16 @@ class FlippyWeather extends LitElement {
             'partlycloudy': '⛅',
             'sunny': '☀️',
             'rainy': '🌧️',
-            'fog': '🌫️'
+            'pouring': '🌧️',
+            'fog': '🌫️',
+            'hail': '🌨️',
+            'lightning': '⛈️',
+            'lightning-rainy': '⛈️',
+            'snowy': '❄️',
+            'snowy-rainy': '🌨️',
+            'windy': '💨',
+            'windy-variant': '💨',
+            'exceptional': '🌡️'
         };
         return emojiMap[condition] || '🌤️';
     }
@@ -134,7 +211,7 @@ class FlippyWeather extends LitElement {
                     const condition = day.condition;
                     
                     return html`
-                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 60px;">
+                        <div style="text-align: center; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 60px; transition: all 0.3s ease;">
                             <div style="font-size: 0.8em; opacity: 0.8; margin-bottom: 5px;">${dayName}</div>
                             <div style="font-size: 1.5em; margin: 5px 0;">${this.getWeatherEmoji(condition)}</div>
                             <div style="font-size: 0.9em; font-weight: bold;">${temp}°</div>
@@ -232,40 +309,63 @@ class FlippyWeather extends LitElement {
                 
                 .location {
                     font-size: 1.4em;
-                    margin-bottom: 10px;
+                    margin-bottom: 15px;
                     font-weight: 500;
                 }
                 
+                .current-weather {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 20px;
+                    margin: 20px 0;
+                }
+                
+                .weather-icon {
+                    font-size: 4em;
+                    line-height: 1;
+                }
+                
                 .temperature {
-                    font-size: 2.5em;
+                    font-size: 3em;
                     font-weight: 300;
-                    margin: 15px 0;
+                    line-height: 1;
                 }
                 
                 .condition {
                     font-size: 1.2em;
                     text-transform: capitalize;
                     opacity: 0.9;
+                    margin-bottom: 10px;
                 }
                 
-                .debug-section {
-                    margin: 10px 0;
+                .forecast-card {
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 8px;
                     padding: 10px;
-                    border-radius: 5px;
-                    font-size: 0.9em;
+                    min-width: 60px;
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                }
+                
+                .forecast-card:hover {
+                    background: rgba(255,255,255,0.2);
+                    transform: translateY(-2px);
                 }
             </style>
-            <ha-card>
+            <ha-card @click="${this._handleClick}">
                 <div class="flippy-container">
                     <div class="htc-clock">
                         <div class="clock-digit">
                             <div class="digit-image" 
+                                 data-digit="firstHourDigit"
                                  style="background-image: url('${clockImagePath}${hourStr[0]}.png')">
                             </div>
                         </div>
                         
                         <div class="clock-digit">
                             <div class="digit-image" 
+                                 data-digit="secondHourDigit"
                                  style="background-image: url('${clockImagePath}${hourStr[1]}.png')">
                             </div>
                         </div>
@@ -274,38 +374,39 @@ class FlippyWeather extends LitElement {
                         
                         <div class="clock-digit">
                             <div class="digit-image" 
+                                 data-digit="firstMinuteDigit"
                                  style="background-image: url('${clockImagePath}${minuteStr[0]}.png')">
                             </div>
                         </div>
                         
                         <div class="clock-digit">
                             <div class="digit-image" 
+                                 data-digit="secondMinuteDigit"
                                  style="background-image: url('${clockImagePath}${minuteStr[1]}.png')">
                             </div>
                         </div>
+                        
+                        ${this._config.am_pm ? html`
+                            <div style="margin-left: 10px; font-size: 1.2em; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 15px;">
+                                ${now.getHours() >= 12 ? 'PM' : 'AM'}
+                            </div>
+                        ` : ''}
                     </div>
                     
                     <div class="weather-info">
                         <div class="location">${location}</div>
                         
-                        <!-- EMOJI TEST SECTION -->
-                        <div class="debug-section" style="background: yellow; color: black;">
-                            Direct emojis: ☀️ ⛅ ☁️ 🌧️
+                        <div class="current-weather">
+                            <div class="weather-icon">${this.getWeatherEmoji(condition)}</div>
+                            <div class="temperature">${temperature}°</div>
                         </div>
                         
-                        <div class="debug-section" style="background: blue; color: white;">
-                            Function result: ${this.getWeatherEmoji(condition)}
-                        </div>
-                        
-                        <div class="debug-section" style="background: green; color: white;">
-                            Condition: "${condition}"
-                        </div>
-                        
-                        <div class="temperature">${temperature}°</div>
                         <div class="condition">${condition}</div>
+                        
+                        ${this._config.renderForecast ? this.renderSimpleForecast(stateObj) : ''}
                     </div>
                     
-                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 15px; color: white;">
+                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 15px; color: white; text-align: center;">
                         FlippyWeather Clock v${flippyVersion}
                     </div>
                 </div>

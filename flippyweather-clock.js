@@ -421,6 +421,7 @@ class FlippyWeather extends LitElement {
                             <div class="digit-image" 
                                  data-digit="firstHourDigit"
                                  style="background-image: url('${clockImagePath}${hourStr[0]}.png')">
+                                ${hourStr[0]}
                             </div>
                         </div>
                         
@@ -428,6 +429,7 @@ class FlippyWeather extends LitElement {
                             <div class="digit-image" 
                                  data-digit="secondHourDigit"
                                  style="background-image: url('${clockImagePath}${hourStr[1]}.png')">
+                                ${hourStr[1]}
                             </div>
                         </div>
                         
@@ -437,6 +439,7 @@ class FlippyWeather extends LitElement {
                             <div class="digit-image" 
                                  data-digit="firstMinuteDigit"
                                  style="background-image: url('${clockImagePath}${minuteStr[0]}.png')">
+                                ${minuteStr[0]}
                             </div>
                         </div>
                         
@@ -444,6 +447,7 @@ class FlippyWeather extends LitElement {
                             <div class="digit-image" 
                                  data-digit="secondMinuteDigit"
                                  style="background-image: url('${clockImagePath}${minuteStr[1]}.png')">
+                                ${minuteStr[1]}
                             </div>
                         </div>
                         

@@ -25,7 +25,7 @@ A modern, animated flip clock weather card for Home Assistant. Features beautifu
 - 🎨 **5 Beautiful Themes** - Default, Dark, Light, Sunset, and Ocean
 - 🔧 **YAML-Only Configuration** - No complex visual editor, reliable setup
 
-## 🆕 Version 4.x New Features
+## 🆕 Version 3.x New Features
 
 ### 🎛️ **Complete Size Control**
 - **Clock Size**: 5 options from small to huge (vertical scaling only - no overflow!)
@@ -270,36 +270,6 @@ Works with all modern browsers that support:
 - 🌍 Uses your browser's timezone
 - 🔄 Refresh if time recently crossed threshold
 
-## 📝 Version History
-
-**v4.10.0** - Latest (Testing)
-- 🎛️ Added independent temperature size control
-- 📐 Enhanced responsive design with container queries
-- 🛡️ Improved overflow protection for all screen sizes
-- 🎨 Better spacing and gap management
-- 📱 Optimized for 3-column dashboard layouts
-
-**v4.9.0** - Previous
-- 🎯 Added comprehensive size options for all elements
-- 📍 Repositioned date to bottom to avoid clock interference
-- 🎨 Added icon opacity controls
-- 📱 Implemented aggressive responsive breakpoints
-- 🔧 YAML-only configuration (removed problematic visual editor)
-
-**v4.0.0** - Major Update
-- 🎨 Complete responsive redesign
-- 📐 Added clock, temperature, and date sizing options
-- 🌈 Enhanced theme system
-- 🎛️ Added compact mode and display toggles
-- 📱 Container query support for true responsive design
-
-**v2.5.0** - Previous Stable
-- 🎨 Dynamic animated weather backgrounds
-- 🌙 Automatic day/night mode switching
-- 📱 Enhanced responsive design
-- 🎬 Weather-responsive background animations
-
-## 🤖 Development
 
 This card was created entirely using [Claude.ai](https://claude.ai) by Anthropic through an iterative development process spanning multiple chat sessions.
 

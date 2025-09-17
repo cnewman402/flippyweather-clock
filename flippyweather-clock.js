@@ -214,26 +214,26 @@ class FlippyWeatherClock extends LitElement {
         }, 300);
     }
 
-    getSizeClass(sizeOption) {
+    getSizeMultiplier(sizeOption) {
         const sizeMap = {
-            small: '0.8',
-            medium: '1',
-            large: '1.2',
-            'extra-large': '1.5',
-            huge: '2'
+            small: 0.8,
+            medium: 1,
+            large: 1.2,
+            'extra-large': 1.5,
+            huge: 2
         };
-        return sizeMap[sizeOption] || '1';
+        return sizeMap[sizeOption] || 1;
     }
 
-    getOpacityClass(opacityOption) {
+    getOpacityValue(opacityOption) {
         const opacityMap = {
-            hidden: '0',
-            low: '0.3',
-            medium: '0.6',
-            high: '0.8',
-            full: '1'
+            hidden: 0,
+            low: 0.3,
+            medium: 0.6,
+            high: 0.8,
+            full: 1
         };
-        return opacityMap[opacityOption] || '0.6';
+        return opacityMap[opacityOption] || 0.6;
     }
 
     getTemperatureUnit() {
@@ -370,13 +370,15 @@ class FlippyWeatherClock extends LitElement {
         const nightModeClass = this.getNightModeClass();
 
         // Size calculations
-        const clockScale = this.getSizeClass(this._config.clock_size);
-        const tempScale = this.getSizeClass(this._config.temperature_size);
-        const dateScale = this.getSizeClass(this._config.date_size);
-        const iconOpacity = this.getOpacityClass(this._config.icon_opacity);
+        const clockScale = this.getSizeMultiplier(this._config.clock_size);
+        const tempScale = this.getSizeMultiplier(this._config.temperature_size);
+        const dateScale = this.getSizeMultiplier(this._config.date_size);
+        const iconOpacity = this.getOpacityValue(this._config.icon_opacity);
 
         // Layout mode
         const isCompact = this._config.compact_mode;
+        const textShadow = this._config.text_shadow;
+        const blurBackground = this._config.blur_background;
 
         return html`
             <style>
@@ -404,7 +406,7 @@ class FlippyWeatherClock extends LitElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: calc(300px * ${clockScale});
+                    font-size: ${300 * clockScale}px;
                     z-index: 1;
                     pointer-events: none;
                     line-height: 1;
@@ -422,14 +424,14 @@ class FlippyWeatherClock extends LitElement {
                 .right-section {
                     display: flex;
                     flex-direction: column;
-                    align-items: flex-end;
+                    align-items: ${isCompact ? 'center' : 'flex-end'};
                     position: relative;
                     z-index: 2;
                 }
                 
                 .flip-card {
-                    width: calc(40px * ${clockScale});
-                    height: calc(60px * ${clockScale});
+                    width: ${40 * clockScale}px;
+                    height: ${60 * clockScale}px;
                     perspective: 1000px;
                 }
                 
@@ -456,20 +458,20 @@ class FlippyWeatherClock extends LitElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: calc(2em * ${clockScale});
+                    font-size: ${2 * clockScale}em;
                     font-weight: bold;
                     color: #ffffff;
                     font-family: 'Courier New', monospace;
                     border: 1px solid rgba(255, 255, 255, 0.2);
-                    text-shadow: ${this._config.text_shadow ? '1px 1px 2px rgba(0,0,0,0.8)' : 'none'};
-                    backdrop-filter: ${this._config.blur_background ? 'blur(5px)' : 'none'};
+                    text-shadow: ${textShadow ? '1px 1px 2px rgba(0,0,0,0.8)' : 'none'};
+                    backdrop-filter: ${blurBackground ? 'blur(5px)' : 'none'};
                 }
                 
                 .clock-separator {
-                    font-size: calc(2.5em * ${clockScale});
+                    font-size: ${2.5 * clockScale}em;
                     color: white;
                     animation: blink 2s infinite;
-                    text-shadow: ${this._config.text_shadow ? '1px 1px 2px rgba(0,0,0,0.5)' : 'none'};
+                    text-shadow: ${textShadow ? '1px 1px 2px rgba(0,0,0,0.5)' : 'none'};
                     margin: 0 5px;
                 }
                 
@@ -480,49 +482,46 @@ class FlippyWeatherClock extends LitElement {
                 
                 .am-pm-indicator {
                     margin-left: 8px;
-                    font-size: calc(0.9em * ${clockScale});
+                    font-size: ${0.9 * clockScale}em;
                     background: rgba(255,255,255,0.2);
                     padding: 4px 8px;
                     border-radius: 10px;
                     font-weight: bold;
-                    text-shadow: ${this._config.text_shadow ? '1px 1px 2px rgba(0,0,0,0.5)' : 'none'};
+                    text-shadow: ${textShadow ? '1px 1px 2px rgba(0,0,0,0.5)' : 'none'};
                 }
                 
                 .temperature {
-                    font-size: calc(4em * ${tempScale});
+                    font-size: ${4 * tempScale}em;
                     font-weight: bold;
                     color: white;
-                    text-shadow: ${this._config.text_shadow ? '3px 3px 6px rgba(0,0,0,0.9)' : 'none'};
-                    text-align: right;
+                    text-shadow: ${textShadow ? '3px 3px 6px rgba(0,0,0,0.9)' : 'none'};
+                    text-align: ${isCompact ? 'center' : 'right'};
                     margin-bottom: 5px;
                 }
                 
                 .condition {
-                    font-size: calc(1.2em * ${dateScale});
+                    font-size: ${1.2 * dateScale}em;
                     font-weight: bold;
                     color: white;
-                    text-shadow: ${this._config.text_shadow ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none'};
-                    text-align: right;
+                    text-shadow: ${textShadow ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none'};
+                    text-align: ${isCompact ? 'center' : 'right'};
                     margin-bottom: 5px;
-                    display: ${this._config.show_condition ? 'block' : 'none'};
                 }
                 
                 .date {
-                    font-size: calc(0.9em * ${dateScale});
+                    font-size: ${0.9 * dateScale}em;
                     color: white;
-                    text-shadow: ${this._config.text_shadow ? '1px 1px 2px rgba(0,0,0,0.7)' : 'none'};
-                    text-align: right;
+                    text-shadow: ${textShadow ? '1px 1px 2px rgba(0,0,0,0.7)' : 'none'};
+                    text-align: ${isCompact ? 'center' : 'right'};
                     margin-bottom: 2px;
-                    display: ${this._config.show_date ? 'block' : 'none'};
                 }
                 
                 .time {
-                    font-size: calc(0.8em * ${dateScale});
+                    font-size: ${0.8 * dateScale}em;
                     color: white;
                     opacity: 0.9;
-                    text-shadow: ${this._config.text_shadow ? '1px 1px 2px rgba(0,0,0,0.7)' : 'none'};
-                    text-align: right;
-                    display: ${this._config.show_date ? 'block' : 'none'};
+                    text-shadow: ${textShadow ? '1px 1px 2px rgba(0,0,0,0.7)' : 'none'};
+                    text-align: ${isCompact ? 'center' : 'right'};
                 }
             </style>
             <ha-card>

@@ -1,27 +1,49 @@
-# 🌤️ FlippyWeather Clock
+# 🌤️ FlippyWeather Clock Testing
 
 ## Screenshots
 
 ### Day Mode
-![Day Mode Mode](screenshots/day1.png)
+![Day Mode](screenshots/day1.png)
 
 ### Night Mode  
 ![Night Mode](screenshots/night1.png)
 
-A modern, animated flip clock weather card for Home Assistant. Features beautiful flip animations, real-time weather forecasting, and dynamic animated backgrounds that change based on weather conditions and time of day.
+A modern, animated flip clock weather card for Home Assistant. Features beautiful flip animations, real-time weather forecasting, dynamic animated backgrounds, and extensive customization options that change based on weather conditions and time of day.
 
-![FlippyWeather Clock](https://img.shields.io/badge/Home%20Assistant-Compatible-blue) ![Version](https://img.shields.io/badge/Version-2.5.0-green) ![No Dependencies](https://img.shields.io/badge/jQuery-Free-red) ![AI Powered](https://img.shields.io/badge/Built%20with-Claude.ai-orange)
+![FlippyWeather Clock](https://img.shields.io/badge/Home%20Assistant-Compatible-blue) ![Version](https://img.shields.io/badge/Version-4.10.0-green) ![No Dependencies](https://img.shields.io/badge/jQuery-Free-red) ![AI Powered](https://img.shields.io/badge/Built%20with-Claude.ai-orange)
 
 ## ✨ Features
 
-- 🕐 **Animated Flip Clock** - Large, smooth digit animations every minute with CSS transitions
-- 🌦️ **Weather Integration** - Real-time weather data from National Weather Service
+- 🕐 **Animated Flip Clock** - Large, smooth digit animations with 5 size options (small to huge)
+- 🌦️ **Weather Integration** - Real-time weather data from Home Assistant weather entities
 - 🎨 **Dynamic Animated Backgrounds** - Weather-responsive backgrounds with day/night modes
-- 🌙 **Automatic Night Mode** - Darker animations between 8 PM and 6 AM
+- 🌙 **Automatic Night Mode** - Darker themes between 8 PM and 6 AM
 - 📦 **Self-Contained** - No external files or dependencies required
-- 📱 **Responsive Design** - Works on desktop and mobile devices
+- 📱 **Fully Responsive Design** - Works perfectly on all screen sizes and dashboard layouts
 - ⚡ **Modern Performance** - Pure vanilla JavaScript, no jQuery
-- 🎯 **Bold Forecast Display** - Easy-to-read 4-day weather forecast
+- 🎯 **Extensive Customization** - Independent sizing for clock, temperature, and date
+- 🎨 **5 Beautiful Themes** - Default, Dark, Light, Sunset, and Ocean
+- 🔧 **YAML-Only Configuration** - No complex visual editor, reliable setup
+
+## 🆕 Version 4.x New Features
+
+### 🎛️ **Complete Size Control**
+- **Clock Size**: 5 options from small to huge (vertical scaling only - no overflow!)
+- **Temperature Size**: Independent sizing from small to huge
+- **Date Size**: 4 size options from small to extra-large
+- **Icon Opacity**: 5 levels from hidden to full visibility
+
+### 📱 **Advanced Responsive Design**
+- **Container Queries**: Automatically adapts to narrow dashboard layouts
+- **Anti-Overflow Protection**: Text never gets cut off, scales intelligently
+- **3-Column Dashboard Support**: Perfect layout in narrow columns
+- **Mobile Optimization**: Automatic vertical layout on small screens
+
+### 🎨 **Enhanced Customization**
+- **Compact Mode**: Vertical layout option for space-saving
+- **Show/Hide Options**: Toggle date and condition display independently
+- **Text Effects**: Optional shadows and blur effects
+- **Position Control**: Date repositioned to bottom to avoid clock interference
 
 ## 🎬 Animated Weather Backgrounds
 
@@ -29,7 +51,7 @@ The card features beautiful animated backgrounds that automatically change based
 
 ### ☀️ Day Mode Animations
 - **Sunny**: Warm gradients with pulsing sun glow effects
-- **Rainy**: Blue tones with animated falling rain
+- **Rainy**: Blue tones with animated falling rain effects
 - **Snowy**: Winter colors with floating snowflakes
 - **Cloudy**: Overcast grays with drifting cloud overlays
 - **Stormy**: Dark themes with lightning flash effects
@@ -50,7 +72,7 @@ The card features beautiful animated backgrounds that automatically change based
 1. 🏠 **Open HACS** in Home Assistant
 2. 🎨 Go to **Frontend** section
 3. ⚙️ Click the menu (⋮) → **Custom Repositories**
-4. 📝 Add repository URL: `https://github.com/cnewman402/flippyweather-clock`
+4. 📝 Add repository URL: `https://github.com/cnewman402/flippyweather-clock-testing`
 5. 📂 Select category: **Dashboard**
 6. ⬇️ Click **Add** → **Install** → **Download**
 7. 🔄 **Restart Home Assistant**
@@ -58,85 +80,155 @@ The card features beautiful animated backgrounds that automatically change based
 
 ### 📁 Option B: Manual Installation
 
-1. 💾 Download `flippyweather-clock.js` from this repository
-2. 📂 Place it in `/config/www/flippyweather-clock/`
+1. 💾 Download `flippyweather-clock-testing.js` from this repository
+2. 📂 Place it in `/config/www/flippyweather-clock-testing/`
 3. ⚙️ Go to **Settings** → **Dashboards** → **Resources** → **Add Resource**:
-   - 🔗 **URL**: `/local/flippyweather-clock/flippyweather-clock.js`
+   - 🔗 **URL**: `/local/flippyweather-clock-testing/flippyweather-clock-testing.js`
    - 📄 **Type**: JavaScript Module
 4. 🔄 **Restart Home Assistant**
 5. 🧹 Clear browser cache (Ctrl+F5)
 
 ## ⚙️ Configuration
 
-No additional Home Assistant configuration is required! The card uses your browser's local time and your Home Assistant's configured coordinates for weather data.
+Configure using YAML only - no complex visual editors needed! All options are optional with sensible defaults.
 
 ## 🎴 Card Configuration
 
 ### 🎯 Basic Example
 ```yaml
-type: custom:flippyweather-card
+type: custom:flippyweather-clock-testing
+weather_entity: weather.home
 ```
 
-### 📍 With Custom Location Name
+### 🎨 Full Customization Example
 ```yaml
-type: custom:flippyweather-card
-location_name: "Living Room"
-```
-
-### 🕐 With 12-Hour Format
-```yaml
-type: custom:flippyweather-card
-location_name: "Home Weather"
+type: custom:flippyweather-clock-testing
+weather_entity: weather.home
+theme: ocean
+temperature_unit: fahrenheit
 am_pm: true
+compact_mode: false
+show_date: true
+show_condition: true
+clock_size: large
+temperature_size: extra-large
+date_size: medium
+text_shadow: true
+blur_background: true
+icon_opacity: medium
+animated_background: true
 ```
 
-### 🎨 With Animation Settings
+### 📱 Compact Mobile-Friendly Setup
 ```yaml
-type: custom:flippyweather-card
-location_name: "Home Weather"
+type: custom:flippyweather-clock-testing
+weather_entity: weather.home
+compact_mode: true
+clock_size: small
+temperature_size: medium
+date_size: small
+show_date: false
+icon_opacity: low
+```
+
+### 🎯 Large Desktop Display
+```yaml
+type: custom:flippyweather-clock-testing
+weather_entity: weather.home
+theme: sunset
+clock_size: huge
+temperature_size: huge
+date_size: large
 am_pm: true
-animated_background: true  # Enable/disable weather animations
+icon_opacity: high
 ```
 
 ## 📋 Configuration Options
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `location_name` | string | `"Weather"` | Display name for the weather location |
-| `am_pm` | boolean | `false` | Use 12-hour time format with AM/PM indicator |
-| `animated_background` | boolean | `true` | Enable weather-responsive animated backgrounds |
+| Option | Type | Default | Description | Values |
+|--------|------|---------|-------------|---------|
+| **`weather_entity`** | string | `null` | **Required** - Your HA weather entity | `weather.home`, etc. |
+| **`theme`** | string | `'default'` | Color scheme | `default`, `dark`, `light`, `sunset`, `ocean` |
+| **`temperature_unit`** | string | `'fahrenheit'` | Temperature display | `fahrenheit`, `celsius` |
+| **`am_pm`** | boolean | `false` | 12-hour format with AM/PM | `true`, `false` |
+| **`compact_mode`** | boolean | `false` | Vertical layout for small spaces | `true`, `false` |
+| **`show_date`** | boolean | `true` | Show full date display | `true`, `false` |
+| **`show_condition`** | boolean | `true` | Show weather condition text | `true`, `false` |
+| **`clock_size`** | string | `'medium'` | Clock digit size | `small`, `medium`, `large`, `extra-large`, `huge` |
+| **`temperature_size`** | string | `'medium'` | Temperature display size | `small`, `medium`, `large`, `extra-large`, `huge` |
+| **`date_size`** | string | `'medium'` | Date text size | `small`, `medium`, `large`, `extra-large` |
+| **`text_shadow`** | boolean | `true` | Text shadow effects | `true`, `false` |
+| **`blur_background`** | boolean | `true` | Backdrop blur on clock digits | `true`, `false` |
+| **`icon_opacity`** | string | `'medium'` | Weather icon transparency | `hidden`, `low`, `medium`, `high`, `full` |
+| **`animated_background`** | boolean | `true` | Weather-based animations | `true`, `false` |
+
+## 🎨 Theme Gallery
+
+### 🌊 **Ocean Theme**
+Beautiful blue-green gradients perfect for coastal vibes
+
+### 🌅 **Sunset Theme** 
+Warm orange and pink gradients for golden hour feels
+
+### 🌑 **Dark Theme**
+Sleek dark grays for modern minimalist setups
+
+### ☀️ **Light Theme**
+Clean whites and grays for bright, airy dashboards
+
+### 🎨 **Default Theme**
+Classic blue gradients with automatic night mode
+
+## 📱 Responsive Design Features
+
+### 🏗️ **Smart Layout Switching**
+- **Wide screens**: Horizontal layout with clock left, weather right
+- **Narrow screens**: Automatic vertical layout, center-aligned
+- **3-column dashboards**: Perfect scaling without overflow
+
+### 📐 **Intelligent Sizing**
+- **`clamp()` functions**: Responsive sizing that scales with viewport
+- **Container queries**: Layout adjusts based on card width, not screen width
+- **Overflow protection**: Text shrinks rather than getting cut off
+
+### 🎯 **Breakpoint Optimization**
+- **450px+**: Full horizontal layout
+- **350px-449px**: Compressed spacing, smaller text
+- **280px-349px**: Vertical layout, center alignment
+- **<280px**: Maximum compression with readable text
 
 ## 🌦️ Weather Data Source
 
-This card uses the **National Weather Service (NWS) API** which:
-- 🎯 Provides accurate weather data for US locations
-- 🏠 Uses your Home Assistant's configured coordinates automatically
-- 🔄 Updates every 10 minutes
-- 📅 Shows current conditions and 4-day forecast
-- 🔓 Requires no API keys or external configuration
+This card uses **Home Assistant weather entities** which:
+- 🎯 Works with any weather integration (OpenWeatherMap, AccuWeather, etc.)
+- 🏠 Uses your existing HA weather setup
+- 🔄 Updates automatically with your weather integration
+- 📅 Shows current conditions with emoji icons
+- 🔑 No additional API keys required
 
 ## 🔧 Technical Details
 
-### 🏗️ Modern Architecture
-- ⚡ **No jQuery dependency** - 85KB smaller than predecessor
+### 🗃️ Modern Architecture
+- ⚡ **No jQuery dependency** - Lightweight and fast
 - 📦 **Self-contained component** - All CSS and logic in one file
-- 🌤️ **Uses National Weather Service API** - No API keys required
-- 🎨 **CSS3 animations** - Smooth flip transitions and weather effects
-- 🚀 **Modern JavaScript** - ES6+ features with proper error handling
-- 🌙 **Intelligent time detection** - Automatic day/night mode switching
+- 🌤️ **Home Assistant weather entities** - Uses your existing setup
+- 🎨 **CSS3 animations** - Hardware-accelerated flip transitions
+- 🚀 **Modern JavaScript** - ES6+ with proper error handling
+- 🌙 **Intelligent time detection** - Automatic day/night switching
+- 📱 **Container queries** - True responsive design
 
 ### 🚀 Performance Benefits
-- ⚡ **Faster loading** - No external asset dependencies
-- 💾 **Better memory usage** - No jQuery object wrapping
+- ⚡ **Faster loading** - No external dependencies
+- 💾 **Better memory usage** - Efficient LitElement implementation
 - 🎬 **Hardware-accelerated animations** - CSS transforms for smooth effects
-- 📱 **Responsive design** - Flexbox layouts that adapt to screen size
-- 🧠 **Smart resource usage** - Animations only when needed
+- 📱 **Responsive design** - Container queries and flexbox layouts
+- 🧠 **Smart resource usage** - Animations only when beneficial
 
 ## 🌐 Browser Compatibility
 
 Works with all modern browsers that support:
 - ⚙️ ES6 JavaScript features
-- 🎨 CSS Custom Properties
+- 🎨 CSS Custom Properties and Container Queries
 - 📐 CSS Grid and Flexbox
 - 🧩 Web Components (LitElement)
 - 🎬 CSS Animations and Transforms
@@ -144,62 +236,81 @@ Works with all modern browsers that support:
 ## 🔧 Troubleshooting
 
 ### ❌ Card doesn't appear
-- 🎯 **HACS**: Verify resource path is `/hacsfiles/flippyweather-clock/flippyweather-clock.js`
-- 📁 **Manual**: Verify resource path is `/local/flippyweather-clock/flippyweather-clock.js`
+- 🎯 **HACS**: Verify resource path includes `flippyweather-clock-testing`
+- 📁 **Manual**: Verify correct file path in resources
 - 🧹 Clear browser cache (Ctrl+F5)
 - 🐛 Check browser console for JavaScript errors
-- 🔄 Ensure Home Assistant is restarted after installation
+- 🔄 Ensure Home Assistant restart after installation
 
 ### 🌤️ Weather data not loading
-- 📍 Verify your Home Assistant has latitude/longitude configured
-- 🇺🇸 Check that your location is within the United States (NWS coverage area)
-- 🌐 Ensure internet connectivity for API access
-- 🐛 Check browser console for API error messages
+- 📝 Verify `weather_entity` matches your actual weather entity ID
+- ⚙️ Check that your weather integration is working in HA
+- 🌐 Ensure weather entity provides temperature and state data
+- 🐛 Check browser console for entity error messages
 
 ### ⏰ Time not updating
-- ⚙️ The card uses browser time, no sensors required
-- 🧹 Clear browser cache and reload the page
+- ⚙️ Card uses browser time automatically
+- 🧹 Clear browser cache and reload
 - 🔄 Restart Home Assistant if needed
 
 ### 🎬 Animations not working
-- 🧹 Clear browser cache and reload the page
-- 🎨 Check that the browser supports CSS transforms
-- 🐛 Verify no JavaScript errors in browser console
-- ⚙️ Ensure `animated_background: true` in configuration
+- 🧹 Clear browser cache completely
+- 🎨 Verify browser supports CSS transforms
+- 🐛 Check for JavaScript errors in console
+- ⚙️ Ensure `animated_background: true`
+
+### 📱 Text getting cut off
+- 📝 Use smaller size options (`small` or `medium`)
+- 🎨 Try `compact_mode: true` for narrow spaces
+- 📐 Check your dashboard column layout
+- 🔄 Refresh page after config changes
 
 ### 🌙 Night mode not activating
-- 🕐 Night mode activates automatically between 8 PM and 6 AM
-- 🌍 Uses your local browser time zone
-- 🔄 Refresh the page if time recently crossed the threshold
+- 🕐 Night mode: 8 PM to 6 AM local browser time
+- 🌍 Uses your browser's timezone
+- 🔄 Refresh if time recently crossed threshold
 
 ## 📝 Version History
 
-**v2.5.0** - Latest
-- 🎨 Added dynamic animated weather backgrounds
-- 🌙 Implemented automatic day/night mode switching
-- 📏 Increased clock size for better readability
-- 📱 Enhanced forecast display with bold day labels
-- 🎬 Added weather-responsive background animations
-- ⚡ Improved performance and visual effects
+**v4.10.0** - Latest (Testing)
+- 🎛️ Added independent temperature size control
+- 📐 Enhanced responsive design with container queries
+- 🛡️ Improved overflow protection for all screen sizes
+- 🎨 Better spacing and gap management
+- 📱 Optimized for 3-column dashboard layouts
 
-**v2.4.1** - Previous
-- ✨ Self-contained implementation with inline CSS
-- 🌦️ National Weather Service API integration
-- 🗑️ Removed external file dependencies
-- 🚀 Modern ES6+ JavaScript with error handling
-- 📱 Improved responsive design
+**v4.9.0** - Previous
+- 🎯 Added comprehensive size options for all elements
+- 📍 Repositioned date to bottom to avoid clock interference
+- 🎨 Added icon opacity controls
+- 📱 Implemented aggressive responsive breakpoints
+- 🔧 YAML-only configuration (removed problematic visual editor)
+
+**v4.0.0** - Major Update
+- 🎨 Complete responsive redesign
+- 📐 Added clock, temperature, and date sizing options
+- 🌈 Enhanced theme system
+- 🎛️ Added compact mode and display toggles
+- 📱 Container query support for true responsive design
+
+**v2.5.0** - Previous Stable
+- 🎨 Dynamic animated weather backgrounds
+- 🌙 Automatic day/night mode switching
+- 📱 Enhanced responsive design
+- 🎬 Weather-responsive background animations
 
 ## 🤖 Development
 
-This card was created entirely using [Claude.ai](https://claude.ai) by Anthropic. The development process showcased the power of AI-assisted coding for creating modern web components.
+This card was created entirely using [Claude.ai](https://claude.ai) by Anthropic through an iterative development process spanning multiple chat sessions.
 
-**Development Details:**
-- 🧠 **AI Assistant**: Claude.ai (Pro subscription)
-- 💻 **Development Process**: Collaborative coding with AI
-- 🔧 **Technologies**: LitElement, CSS3, ES6+ JavaScript
-- 🎯 **No Sponsorship**: This is an independent project, not sponsored by Anthropic
+**Development Highlights:**
+- 🧠 **AI Assistant**: Claude Sonnet 4 (Pro subscription)
+- 💻 **Development Process**: Collaborative problem-solving with AI
+- 🔧 **Technologies**: LitElement, CSS3, Container Queries, ES6+
+- 🎯 **Methodology**: Issue identification → Solution → Fresh code iterations
+- 📱 **Focus**: Responsive design and user experience
 
-The entire codebase, from initial concept to advanced features like animated backgrounds and night mode detection, was developed through iterative collaboration with Claude.ai. This demonstrates the potential for AI-assisted development in creating polished, production-ready Home Assistant integrations.
+The entire codebase evolved from a simple clock with overflow issues to a fully-featured, responsive weather card through systematic improvements and fresh code generations. This showcases the potential for AI-assisted development in creating polished, production-ready Home Assistant integrations.
 
 ## 📄 License
 
@@ -217,17 +328,21 @@ If you encounter issues:
    - 🏠 Your Home Assistant version
    - 🌐 Browser and version
    - ❌ Any console error messages
-   - ⚙️ Your card configuration
-   - 🕐 Current time if related to night mode issues
+   - ⚙️ Your complete card configuration
+   - 📱 Screen size/dashboard layout if layout-related
+   - 🌤️ Weather entity details if weather-related
 
 ## 🙏 Credits
 
-- 📱 Inspired by the original HTC Flip Clock design
-- 🌤️ Weather data provided by the National Weather Service
+- 📱 Inspired by classic flip clock designs
+- 🌤️ Weather data from Home Assistant integrations
 - 🏠 Built for the Home Assistant community
-- 🤖 Developed with assistance from [Claude.ai](https://claude.ai) by Anthropic
-- 🎨 Weather animations inspired by modern web design trends
+- 🤖 Developed with [Claude.ai](https://claude.ai) by Anthropic
+- 🎨 Modern responsive design principles
+- 📐 Container query implementation for true responsive cards
 
 ---
 
-**Enjoy your new FlippyWeather Clock with dynamic animated backgrounds! 🌤️**
+**Enjoy your FlippyWeather Clock with complete customization control! 🌤️⏰✨**
+
+*Perfect for any dashboard layout - from single column mobile to triple column desktop!* 📱💻

@@ -90,13 +90,13 @@ const weatherDefaults = {
     show_condition: true,
     clock_size: 'medium',
     temperature_size: 'medium',
-    date_size: 'medium',
     text_shadow: true,
     blur_background: true,
-    icon_opacity: 'medium'
+    icon_opacity: 'medium',
+    date_size: 'medium'
 };
 
-const flippyVersion = "3.0.0";
+const flippyVersion = "4.10.0";
 
 console.info("%c 🌤️ FlippyWeather Clock %c " + flippyVersion + " ", "color: white; background: #555555; border-radius: 3px 0 0 3px; padding: 1px 0;", "color: white; background: #3a7ec6; border-radius: 0 3px 3px 0; padding: 1px 0;");
 
@@ -123,10 +123,10 @@ class FlippyWeatherClock extends LitElement {
             show_condition: true,
             clock_size: 'medium',
             temperature_size: 'medium',
-            date_size: 'medium',
             text_shadow: true,
             blur_background: true,
-            icon_opacity: 'medium'
+            icon_opacity: 'medium',
+            date_size: 'medium'
         };
     }
 
@@ -212,28 +212,6 @@ class FlippyWeatherClock extends LitElement {
             element.classList.remove('flipping');
             this.animatingDigits.delete(digitKey);
         }, 300);
-    }
-
-    getSizeMultiplier(sizeOption) {
-        const sizeMap = {
-            small: 0.8,
-            medium: 1,
-            large: 1.2,
-            'extra-large': 1.5,
-            huge: 2
-        };
-        return sizeMap[sizeOption] || 1;
-    }
-
-    getOpacityValue(opacityOption) {
-        const opacityMap = {
-            hidden: 0,
-            low: 0.3,
-            medium: 0.6,
-            high: 0.8,
-            full: 1
-        };
-        return opacityMap[opacityOption] || 0.6;
     }
 
     getTemperatureUnit() {
@@ -344,6 +322,83 @@ class FlippyWeatherClock extends LitElement {
         return this.isNightTime() ? 'night-mode' : '';
     }
 
+    getClockSize() {
+        const clockSize = this._config.clock_size || 'medium';
+        
+        const sizes = {
+            small: { 
+                width: '30px', 
+                height: '45px', 
+                font: '1.4em', 
+                separator: '2em' 
+            },
+            medium: { 
+                width: '40px', 
+                height: '60px', 
+                font: '2em', 
+                separator: '2.5em' 
+            },
+            large: { 
+                width: '40px',     
+                height: '80px',    
+                font: '3em',       
+                separator: '3.5em' 
+            },
+            'extra-large': { 
+                width: '40px',     
+                height: '100px',   
+                font: '4em',       
+                separator: '4.5em' 
+            },
+            huge: { 
+                width: '45px',     
+                height: '120px',   
+                font: '5em',       
+                separator: '5.5em' 
+            }
+        };
+        
+        return sizes[clockSize] || sizes.medium;
+    }
+
+    getTemperatureSize() {
+        const tempSize = this._config.temperature_size || 'medium';
+        
+        const sizes = {
+            small: 'clamp(0.8em, 3vw, 1.8em)',
+            medium: 'clamp(1em, 4vw, 2.5em)',
+            large: 'clamp(1.3em, 5vw, 3.2em)',
+            'extra-large': 'clamp(1.6em, 6vw, 4em)',
+            huge: 'clamp(2em, 7vw, 5em)'
+        };
+        
+        return sizes[tempSize] || sizes.medium;
+    }
+
+    getDateSize() {
+        const dateSize = this._config.date_size || 'medium';
+        
+        const sizes = {
+            small: 'clamp(0.6em, 2vw, 0.75em)',
+            medium: 'clamp(0.7em, 2.5vw, 0.9em)',
+            large: 'clamp(0.85em, 3vw, 1.1em)',
+            'extra-large': 'clamp(1em, 3.5vw, 1.3em)'
+        };
+        
+        return sizes[dateSize] || sizes.medium;
+    }
+
+    getIconOpacity() {
+        const opacities = {
+            hidden: 0,
+            low: 0.15,
+            medium: 0.4,
+            high: 0.6,
+            full: 1.0
+        };
+        return opacities[this._config.icon_opacity] || opacities.medium;
+    }
+
     render() {
         if (!this._config) {
             return html`<ha-card><div style="padding: 20px;">Loading configuration...</div></ha-card>`;
@@ -368,17 +423,10 @@ class FlippyWeatherClock extends LitElement {
         const iconClass = this.getWeatherIconClass(weatherData.condition);
         const tempUnit = this.getTemperatureUnit();
         const nightModeClass = this.getNightModeClass();
-
-        // Size calculations
-        const clockScale = this.getSizeMultiplier(this._config.clock_size);
-        const tempScale = this.getSizeMultiplier(this._config.temperature_size);
-        const dateScale = this.getSizeMultiplier(this._config.date_size);
-        const iconOpacity = this.getOpacityValue(this._config.icon_opacity);
-
-        // Layout mode
-        const isCompact = this._config.compact_mode;
-        const textShadow = this._config.text_shadow;
-        const blurBackground = this._config.blur_background;
+        const clockSize = this.getClockSize();
+        const temperatureSize = this.getTemperatureSize();
+        const dateSize = this.getDateSize();
+        const iconOpacity = this.getIconOpacity();
 
         return html`
             <style>
@@ -389,12 +437,20 @@ class FlippyWeatherClock extends LitElement {
                     overflow: hidden;
                     transition: background 1s ease-in-out;
                     display: flex;
-                    align-items: center;
-                    justify-content: ${isCompact ? 'center' : 'space-between'};
+                    flex-direction: column;
+                    min-height: ${this._config.compact_mode ? '150px' : '200px'};
+                    padding-bottom: 5px;
+                }
+                
+                .main-content {
+                    display: flex;
+                    flex-direction: ${this._config.compact_mode ? 'column' : 'row'};
+                    align-items: ${this._config.compact_mode ? 'center' : 'center'};
+                    justify-content: ${this._config.compact_mode ? 'center' : 'space-between'};
+                    flex: 1;
+                    gap: clamp(4px, 2vw, 12px);
+                    min-width: 0;
                     width: 100%;
-                    box-sizing: border-box;
-                    flex-direction: ${isCompact ? 'column' : 'row'};
-                    gap: ${isCompact ? '10px' : '0'};
                 }
                 
                 .weather-icon-large {
@@ -406,7 +462,7 @@ class FlippyWeatherClock extends LitElement {
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: ${300 * clockScale}px;
+                    font-size: clamp(150px, 20vw, 300px);
                     z-index: 1;
                     pointer-events: none;
                     line-height: 1;
@@ -416,23 +472,43 @@ class FlippyWeatherClock extends LitElement {
                 .left-section {
                     display: flex;
                     align-items: center;
-                    gap: 8px;
+                    gap: clamp(3px, 0.8vw, 6px);
                     position: relative;
                     z-index: 2;
+                    flex-shrink: 0;
                 }
                 
                 .right-section {
                     display: flex;
                     flex-direction: column;
-                    align-items: ${isCompact ? 'center' : 'flex-end'};
+                    align-items: ${this._config.compact_mode ? 'center' : 'flex-end'};
                     position: relative;
                     z-index: 2;
+                    text-align: ${this._config.compact_mode ? 'center' : 'right'};
+                    min-width: 0;
+                    flex: 1;
+                    overflow: hidden;
+                    width: 100%;
+                    max-width: 100%;
+                }
+                
+                .date-bottom {
+                    position: relative;
+                    z-index: 2;
+                    text-align: right;
+                    margin-top: auto;
+                    margin-bottom: 0;
+                    padding-top: 15px;
+                    min-width: 0;
+                    overflow: hidden;
+                    width: 100%;
                 }
                 
                 .flip-card {
-                    width: ${40 * clockScale}px;
-                    height: ${60 * clockScale}px;
+                    width: ${clockSize.width};
+                    height: ${clockSize.height};
                     perspective: 1000px;
+                    flex-shrink: 0;
                 }
                 
                 .flip-card-inner {
@@ -453,26 +529,28 @@ class FlippyWeatherClock extends LitElement {
                     height: 100%;
                     backface-visibility: hidden;
                     background: rgba(255, 255, 255, 0.15);
-                    border-radius: 8px;
-                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                    border-radius: clamp(6px, 1.2vw, 12px);
+                    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: ${2 * clockScale}em;
+                    font-size: ${clockSize.font};
                     font-weight: bold;
                     color: #ffffff;
                     font-family: 'Courier New', monospace;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                    text-shadow: ${textShadow ? '1px 1px 2px rgba(0,0,0,0.8)' : 'none'};
-                    backdrop-filter: ${blurBackground ? 'blur(5px)' : 'none'};
+                    border: 2px solid rgba(255, 255, 255, 0.3);
+                    text-shadow: ${this._config.text_shadow ? '3px 3px 6px rgba(0,0,0,0.9)' : 'none'};
+                    backdrop-filter: ${this._config.blur_background ? 'blur(8px)' : 'none'};
                 }
                 
                 .clock-separator {
-                    font-size: ${2.5 * clockScale}em;
+                    font-size: ${clockSize.separator};
                     color: white;
                     animation: blink 2s infinite;
-                    text-shadow: ${textShadow ? '1px 1px 2px rgba(0,0,0,0.5)' : 'none'};
-                    margin: 0 5px;
+                    text-shadow: ${this._config.text_shadow ? '3px 3px 6px rgba(0,0,0,0.7)' : 'none'};
+                    margin: 0 clamp(2px, 0.5vw, 6px);
+                    flex-shrink: 0;
+                    font-weight: bold;
                 }
                 
                 @keyframes blink {
@@ -481,104 +559,202 @@ class FlippyWeatherClock extends LitElement {
                 }
                 
                 .am-pm-indicator {
-                    margin-left: 8px;
-                    font-size: ${0.9 * clockScale}em;
+                    margin-left: clamp(3px, 0.8vw, 6px);
+                    font-size: clamp(0.6em, 2vw, 0.8em);
                     background: rgba(255,255,255,0.2);
-                    padding: 4px 8px;
-                    border-radius: 10px;
+                    padding: 3px 6px;
+                    border-radius: 8px;
                     font-weight: bold;
-                    text-shadow: ${textShadow ? '1px 1px 2px rgba(0,0,0,0.5)' : 'none'};
+                    text-shadow: ${this._config.text_shadow ? '1px 1px 2px rgba(0,0,0,0.5)' : 'none'};
+                    white-space: nowrap;
+                    flex-shrink: 0;
                 }
                 
                 .temperature {
-                    font-size: ${4 * tempScale}em;
+                    font-size: ${temperatureSize};
                     font-weight: bold;
                     color: white;
-                    text-shadow: ${textShadow ? '3px 3px 6px rgba(0,0,0,0.9)' : 'none'};
-                    text-align: ${isCompact ? 'center' : 'right'};
-                    margin-bottom: 5px;
+                    text-shadow: ${this._config.text_shadow ? '3px 3px 6px rgba(0,0,0,0.9)' : 'none'};
+                    margin-bottom: 2px;
+                    white-space: nowrap;
+                    overflow: visible;
+                    width: 100%;
+                    word-break: keep-all;
+                    display: block;
                 }
                 
                 .condition {
-                    font-size: ${1.2 * dateScale}em;
+                    font-size: clamp(0.7em, 2.2vw, 1em);
                     font-weight: bold;
                     color: white;
-                    text-shadow: ${textShadow ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none'};
-                    text-align: ${isCompact ? 'center' : 'right'};
-                    margin-bottom: 5px;
+                    text-shadow: ${this._config.text_shadow ? '2px 2px 4px rgba(0,0,0,0.7)' : 'none'};
+                    margin-bottom: 2px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    width: 100%;
+                    max-width: 100%;
                 }
                 
                 .date {
-                    font-size: ${0.9 * dateScale}em;
+                    font-size: ${dateSize};
                     color: white;
-                    text-shadow: ${textShadow ? '1px 1px 2px rgba(0,0,0,0.7)' : 'none'};
-                    text-align: ${isCompact ? 'center' : 'right'};
-                    margin-bottom: 2px;
+                    text-shadow: ${this._config.text_shadow ? '1px 1px 2px rgba(0,0,0,0.7)' : 'none'};
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    width: 100%;
+                    max-width: 100%;
+                }
+
+                /* Responsive adjustments */
+                @container (max-width: 450px) {
+                    .main-content {
+                        gap: clamp(3px, 1.5vw, 8px);
+                    }
+                    
+                    .left-section {
+                        gap: clamp(2px, 0.6vw, 4px);
+                    }
+                    
+                    .condition {
+                        font-size: clamp(0.65em, 2vw, 0.9em);
+                    }
                 }
                 
-                .time {
-                    font-size: ${0.8 * dateScale}em;
-                    color: white;
-                    opacity: 0.9;
-                    text-shadow: ${textShadow ? '1px 1px 2px rgba(0,0,0,0.7)' : 'none'};
-                    text-align: ${isCompact ? 'center' : 'right'};
+                @container (max-width: 380px) {
+                    .condition {
+                        font-size: clamp(0.6em, 1.8vw, 0.8em);
+                    }
+                    
+                    .left-section {
+                        gap: clamp(1px, 0.4vw, 3px);
+                    }
+                    
+                    .clock-separator {
+                        margin: 0 clamp(1px, 0.3vw, 3px);
+                    }
+                }
+                
+                @container (max-width: 350px) {
+                    .main-content {
+                        flex-direction: column;
+                        gap: 6px;
+                        text-align: center;
+                    }
+                    
+                    .right-section {
+                        align-items: center;
+                        text-align: center;
+                    }
+                    
+                    .date-bottom {
+                        text-align: center;
+                    }
+                    
+                    .weather-icon-large {
+                        font-size: 120px;
+                        opacity: ${iconOpacity * 0.8};
+                    }
+                    
+                    .flip-card {
+                        width: calc(${clockSize.width} * 0.85);
+                        height: calc(${clockSize.height} * 0.85);
+                    }
+                    
+                    .condition {
+                        font-size: clamp(0.8em, 2.5vw, 1.1em);
+                    }
+                }
+                
+                @container (max-width: 280px) {
+                    .left-section {
+                        gap: 1px;
+                    }
+                    
+                    .flip-card {
+                        width: calc(${clockSize.width} * 0.75);
+                        height: calc(${clockSize.height} * 0.75);
+                    }
+                    
+                    .am-pm-indicator {
+                        padding: 2px 4px;
+                        font-size: 0.55em;
+                    }
+                    
+                    .weather-icon-large {
+                        font-size: 100px;
+                        opacity: ${iconOpacity * 0.7};
+                    }
+                    
+                    .condition {
+                        font-size: clamp(0.7em, 1.8vw, 0.9em);
+                    }
+                    
+                    .clock-separator {
+                        margin: 0 1px;
+                    }
                 }
             </style>
-            <ha-card>
+            <ha-card style="container-type: inline-size;">
                 <div class="flippy-container ${weatherAnimationClass} ${nightModeClass}">
                     <div class="weather-icon-large ${iconClass}">${weatherIcon}</div>
                     
-                    <div class="left-section">
-                        <div class="flip-card">
-                            <div class="flip-card-inner" data-digit="firstHourDigit">
-                                <div class="flip-card-face">${hourStr[0]}</div>
+                    <div class="main-content">
+                        <div class="left-section">
+                            <div class="flip-card">
+                                <div class="flip-card-inner" data-digit="firstHourDigit">
+                                    <div class="flip-card-face">${hourStr[0]}</div>
+                                </div>
                             </div>
+                            
+                            <div class="flip-card">
+                                <div class="flip-card-inner" data-digit="secondHourDigit">
+                                    <div class="flip-card-face">${hourStr[1]}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="clock-separator">:</div>
+                            
+                            <div class="flip-card">
+                                <div class="flip-card-inner" data-digit="firstMinuteDigit">
+                                    <div class="flip-card-face">${minuteStr[0]}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="flip-card">
+                                <div class="flip-card-inner" data-digit="secondMinuteDigit">
+                                    <div class="flip-card-face">${minuteStr[1]}</div>
+                                </div>
+                            </div>
+                            
+                            ${this._config.am_pm ? html`
+                                <div class="am-pm-indicator">
+                                    ${now.getHours() >= 12 ? 'PM' : 'AM'}
+                                </div>
+                            ` : ''}
                         </div>
                         
-                        <div class="flip-card">
-                            <div class="flip-card-inner" data-digit="secondHourDigit">
-                                <div class="flip-card-face">${hourStr[1]}</div>
-                            </div>
+                        <div class="right-section">
+                            <div class="temperature">${weatherData.temperature}°${tempUnit}</div>
+                            ${this._config.show_condition ? html`
+                                <div class="condition">${weatherData.condition.charAt(0).toUpperCase() + weatherData.condition.slice(1)}</div>
+                            ` : ''}
                         </div>
-                        
-                        <div class="clock-separator">:</div>
-                        
-                        <div class="flip-card">
-                            <div class="flip-card-inner" data-digit="firstMinuteDigit">
-                                <div class="flip-card-face">${minuteStr[0]}</div>
-                            </div>
-                        </div>
-                        
-                        <div class="flip-card">
-                            <div class="flip-card-inner" data-digit="secondMinuteDigit">
-                                <div class="flip-card-face">${minuteStr[1]}</div>
-                            </div>
-                        </div>
-                        
-                        ${this._config.am_pm ? html`
-                            <div class="am-pm-indicator">
-                                ${now.getHours() >= 12 ? 'PM' : 'AM'}
-                            </div>
-                        ` : ''}
                     </div>
                     
-                    <div class="right-section">
-                        <div class="temperature">${weatherData.temperature}°${tempUnit}</div>
-                        ${this._config.show_condition ? html`
-                            <div class="condition">${weatherData.condition.charAt(0).toUpperCase() + weatherData.condition.slice(1)}</div>
-                        ` : ''}
-                        ${this._config.show_date ? html`
+                    ${this._config.show_date ? html`
+                        <div class="date-bottom">
                             <div class="date">${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                            <div class="time">${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
-                        ` : ''}
-                    </div>
+                        </div>
+                    ` : ''}
                 </div>
             </ha-card>
         `;
     }
 
     getCardSize() {
-        return 3;
+        return this._config.compact_mode ? 1 : 2;
     }
 
     set hass(hass) {

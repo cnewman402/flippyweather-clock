@@ -72,7 +72,7 @@ The card features beautiful animated backgrounds that automatically change based
 1. 🏠 **Open HACS** in Home Assistant
 2. 🎨 Go to **Frontend** section
 3. ⚙️ Click the menu (⋮) → **Custom Repositories**
-4. 📝 Add repository URL: `https://github.com/cnewman402/flippyweather-clock-testing`
+4. 📝 Add repository URL: `https://github.com/cnewman402/flippyweather-clock`
 5. 📂 Select category: **Dashboard**
 6. ⬇️ Click **Add** → **Install** → **Download**
 7. 🔄 **Restart Home Assistant**
@@ -80,10 +80,10 @@ The card features beautiful animated backgrounds that automatically change based
 
 ### 📁 Option B: Manual Installation
 
-1. 💾 Download `flippyweather-clock-testing.js` from this repository
-2. 📂 Place it in `/config/www/flippyweather-clock-testing/`
+1. 💾 Download `flippyweather-clock.js` from this repository
+2. 📂 Place it in `/config/www/flippyweather-clock/`
 3. ⚙️ Go to **Settings** → **Dashboards** → **Resources** → **Add Resource**:
-   - 🔗 **URL**: `/local/flippyweather-clock-testing/flippyweather-clock-testing.js`
+   - 🔗 **URL**: `/local/flippyweather-clock/flippyweather-clock.js`
    - 📄 **Type**: JavaScript Module
 4. 🔄 **Restart Home Assistant**
 5. 🧹 Clear browser cache (Ctrl+F5)
@@ -96,13 +96,13 @@ Configure using YAML only - no complex visual editors needed! All options are op
 
 ### 🎯 Basic Example
 ```yaml
-type: custom:flippyweather-clock-testing
+type: custom:flippyweather-clock
 weather_entity: weather.home
 ```
 
 ### 🎨 Full Customization Example
 ```yaml
-type: custom:flippyweather-clock-testing
+type: custom:flippyweather-clock
 weather_entity: weather.home
 theme: ocean
 temperature_unit: fahrenheit
@@ -121,7 +121,7 @@ animated_background: true
 
 ### 📱 Compact Mobile-Friendly Setup
 ```yaml
-type: custom:flippyweather-clock-testing
+type: custom:flippyweather-clock
 weather_entity: weather.home
 compact_mode: true
 clock_size: small
@@ -133,7 +133,7 @@ icon_opacity: low
 
 ### 🎯 Large Desktop Display
 ```yaml
-type: custom:flippyweather-clock-testing
+type: custom:flippyweather-clock
 weather_entity: weather.home
 theme: sunset
 clock_size: huge
@@ -236,7 +236,7 @@ Works with all modern browsers that support:
 ## 🔧 Troubleshooting
 
 ### ❌ Card doesn't appear
-- 🎯 **HACS**: Verify resource path includes `flippyweather-clock-testing`
+- 🎯 **HACS**: Verify resource path includes `flippyweather-clock`
 - 📁 **Manual**: Verify correct file path in resources
 - 🧹 Clear browser cache (Ctrl+F5)
 - 🐛 Check browser console for JavaScript errors

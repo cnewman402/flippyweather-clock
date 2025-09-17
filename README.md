@@ -3,10 +3,10 @@
 ## Screenshots
 
 ### Day Mode
-![Day Mode](screenshots/day1.png)
+
 
 ### Night Mode  
-![Night Mode](screenshots/night1.png)
+
 
 A modern, animated flip clock weather card for Home Assistant. Features beautiful flip animations, real-time weather forecasting, dynamic animated backgrounds, and extensive customization options that change based on weather conditions and time of day.
 

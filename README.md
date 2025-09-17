@@ -1,4 +1,4 @@
-# 🌤️ FlippyWeather Clock Testing
+# 🌤️ FlippyWeather Clock
 
 ## Screenshots
 

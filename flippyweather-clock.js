@@ -12,10 +12,67 @@ const themes = {
             .flippy-container {
                 background: linear-gradient(135deg, #74b9ff, #0984e3);
                 color: white;
-                padding: 20px;
+                padding: 15px;
                 border-radius: 15px;
                 font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                 box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+                height: 220px;
+            }
+            .flippy-container.night-mode {
+                background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            }
+        `
+    },
+    dark: {
+        css: `
+            .flippy-container {
+                background: linear-gradient(135deg, #2c3e50, #34495e);
+                color: white;
+                padding: 15px;
+                border-radius: 15px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                height: 200px;
+            }
+        `
+    },
+    light: {
+        css: `
+            .flippy-container {
+                background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
+                color: #2c3e50;
+                padding: 15px;
+                border-radius: 15px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+                height: 200px;
+            }
+        `
+    },
+    sunset: {
+        css: `
+            .flippy-container {
+                background: linear-gradient(135deg, #ff7675, #fd79a8, #fdcb6e);
+                color: white;
+                padding: 15px;
+                border-radius: 15px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                box-shadow: 0 8px 32px rgba(255, 118, 117, 0.3);
+                height: 200px;
+            }
+        `
+    },
+    ocean: {
+        css: `
+            .flippy-container {
+                background: linear-gradient(135deg, #00b894, #00cec9, #74b9ff);
+                color: white;
+                padding: 15px;
+                border-radius: 15px;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                box-shadow: 0 8px 32px rgba(0, 184, 148, 0.3);
+                height: 200px;
             }
         `
     }
@@ -25,33 +82,33 @@ const weatherDefaults = {
     location_name: 'Weather',
     am_pm: false,
     animated_background: true,
-    theme: {
-        name: 'default'
-    }
+    theme: 'default',
+    weather_entity: null,
+    temperature_unit: 'fahrenheit'
 };
 
-const flippyVersion = "2.5.0";
+const flippyVersion = "3.0.0";
 
-console.info("%c 🕐 FlippyWeather Clock %c ".concat(flippyVersion, " "), "color: white; background: #555555; border-radius: 3px 0 0 3px; padding: 1px 0;", "color: white; background: #3a7ec6; border-radius: 0 3px 3px 0; padding: 1px 0;");
+console.info("%c 🌤️ FlippyWeather Clock %c " + flippyVersion + " ", "color: white; background: #555555; border-radius: 3px 0 0 3px; padding: 1px 0;", "color: white; background: #3a7ec6; border-radius: 0 3px 3px 0; padding: 1px 0;");
 
-class FlippyWeather extends LitElement {
+class FlippyWeatherClock extends LitElement {
     constructor() {
         super();
         this.weatherData = null;
-        this.forecastData = null;
-        this.lastWeatherUpdate = 0;
         this.previousTime = {};
         this.animatingDigits = new Set();
         this.oldTime = {};
-        this.latitude = null;
-        this.longitude = null;
         this.currentCondition = '';
+        this.currentTemperature = '--';
     }
 
     static getStubConfig() {
         return { 
             location_name: 'Home Assistant Location',
-            animated_background: true
+            animated_background: true,
+            theme: 'default',
+            weather_entity: 'weather.home',
+            temperature_unit: 'fahrenheit'
         };
     }
 
@@ -73,92 +130,15 @@ class FlippyWeather extends LitElement {
     async connectedCallback() {
         super.connectedCallback();
         
-        if (this.hass) {
-            this.initializeWeather();
-        }
-        
         this.updateInterval = setInterval(() => {
             this.requestUpdate();
         }, 1000);
-        
-        this.weatherInterval = setInterval(async () => {
-            if (this.hass) {
-                await this.fetchWeatherData();
-            }
-        }, 600000);
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         if (this.updateInterval) {
             clearInterval(this.updateInterval);
-        }
-        if (this.weatherInterval) {
-            clearInterval(this.weatherInterval);
-        }
-    }
-
-    async initializeWeather() {
-        const lat = this.hass.config.latitude;
-        const lon = this.hass.config.longitude;
-        
-        console.log('FlippyWeather: Using Home Assistant coordinates:', lat, lon);
-        
-        if (lat && lon) {
-            this.latitude = lat;
-            this.longitude = lon;
-            await this.fetchWeatherData();
-        } else {
-            console.error('FlippyWeather: Could not get coordinates from Home Assistant');
-        }
-    }
-
-    async fetchWeatherData() {
-        if (!this.latitude || !this.longitude) {
-            console.error('FlippyWeather: No coordinates available');
-            return;
-        }
-        
-        try {
-            console.log('Fetching weather data from NWS...');
-            
-            const pointsResponse = await fetch(`https://api.weather.gov/points/${this.latitude},${this.longitude}`);
-            
-            if (!pointsResponse.ok) {
-                throw new Error(`Points API error: ${pointsResponse.status}`);
-            }
-            
-            const pointsData = await pointsResponse.json();
-            
-            const stationsResponse = await fetch(pointsData.properties.observationStations);
-            const stationsData = await stationsResponse.json();
-            
-            if (stationsData.features && stationsData.features.length > 0) {
-                const stationId = stationsData.features[0].properties.stationIdentifier;
-                const currentResponse = await fetch(`https://api.weather.gov/stations/${stationId}/observations/latest`);
-                
-                if (currentResponse.ok) {
-                    const currentData = await currentResponse.json();
-                    this.weatherData = currentData.properties;
-                }
-            }
-            
-            const forecastResponse = await fetch(pointsData.properties.forecast);
-            
-            if (forecastResponse.ok) {
-                const forecastData = await forecastResponse.json();
-                this.forecastData = forecastData.properties.periods;
-            }
-            
-            this.lastWeatherUpdate = Date.now();
-            this.requestUpdate();
-            
-            console.log('Weather data updated successfully');
-            
-        } catch (error) {
-            console.error('Error fetching weather data:', error);
-            this.weatherData = { error: error.message };
-            this.requestUpdate();
         }
     }
 
@@ -208,103 +188,120 @@ class FlippyWeather extends LitElement {
             if (digitDisplay) {
                 digitDisplay.textContent = newDigit;
             }
-        }, 300);
+        }, 150);
         
         setTimeout(() => {
             element.classList.remove('flipping');
             this.animatingDigits.delete(digitKey);
-        }, 600);
+        }, 300);
+    }
+
+    getTemperatureUnit() {
+        return this._config.temperature_unit === 'celsius' ? 'C' : 'F';
+    }
+
+    isNightTime() {
+        const hour = new Date().getHours();
+        return hour >= 20 || hour < 6;
+    }
+
+    getWeatherFromEntity() {
+        if (!this.hass || !this._config.weather_entity) {
+            return {
+                temperature: '--',
+                condition: 'Unknown',
+                icon: this.isNightTime() ? '🌙' : '🌤️'
+            };
+        }
+
+        const entity = this.hass.states[this._config.weather_entity];
+        if (!entity) {
+            return {
+                temperature: '--',
+                condition: 'Entity not found',
+                icon: '❓'
+            };
+        }
+
+        const temperature = entity.attributes.temperature || '--';
+        const condition = entity.state || 'Unknown';
+        
+        const displayTemp = temperature === '--' ? '--' : Math.round(temperature);
+        
+        return {
+            temperature: displayTemp,
+            condition: condition,
+            icon: this.getWeatherEmoji(condition)
+        };
     }
 
     getWeatherEmoji(condition) {
-        if (!condition) return '🌤️';
+        if (!condition) {
+            return this.isNightTime() ? '🌙' : '🌤️';
+        }
         
         const lowerCondition = condition.toLowerCase();
+        const isNight = this.isNightTime();
         
-        if (lowerCondition.includes('sunny') || lowerCondition.includes('clear')) return '☀️';
-        if (lowerCondition.includes('partly cloudy') || lowerCondition.includes('partly sunny')) return '⛅';
-        if (lowerCondition.includes('mostly cloudy') || lowerCondition.includes('cloudy')) return '☁️';
-        if (lowerCondition.includes('rain') || lowerCondition.includes('shower')) return '🌧️';
-        if (lowerCondition.includes('thunderstorm') || lowerCondition.includes('storm')) return '⛈️';
-        if (lowerCondition.includes('snow') || lowerCondition.includes('blizzard')) return '❄️';
-        if (lowerCondition.includes('fog') || lowerCondition.includes('mist')) return '🌫️';
-        if (lowerCondition.includes('wind')) return '💨';
+        if (lowerCondition.includes('sunny') || lowerCondition.includes('clear')) {
+            return isNight ? '🌙' : '☀️';
+        }
+        if (lowerCondition.includes('partlycloudy') || lowerCondition.includes('partly-cloudy')) return '⛅';
+        if (lowerCondition.includes('cloudy')) return '☁️';
+        if (lowerCondition.includes('rainy') || lowerCondition.includes('rain')) return '🌧️';
+        if (lowerCondition.includes('lightning') || lowerCondition.includes('storm')) return '⛈️';
+        if (lowerCondition.includes('snowy') || lowerCondition.includes('snow')) return '❄️';
+        if (lowerCondition.includes('fog')) return '🌫️';
+        if (lowerCondition.includes('windy') || lowerCondition.includes('wind')) return '💨';
         
-        return '🌤️';
+        return isNight ? '🌙' : '🌤️';
     }
 
     getWeatherAnimationClass(condition) {
-        if (!condition) return '';
+        if (!condition || !this._config.animated_background) return '';
         
         const lowerCondition = condition.toLowerCase();
-        const now = new Date();
-        const hour = now.getHours();
-        const isNightTime = hour < 6 || hour >= 20; // Night time between 8 PM and 6 AM
+        const isNight = this.isNightTime();
         
-        if (lowerCondition.includes('rain') || lowerCondition.includes('shower')) {
-            return `weather-rain${isNightTime ? '-night' : ''}`;
+        if (lowerCondition.includes('rainy') || lowerCondition.includes('rain')) {
+            return `weather-rain${isNight ? '-night' : ''}`;
         }
-        if (lowerCondition.includes('snow') || lowerCondition.includes('blizzard')) {
-            return `weather-snow${isNightTime ? '-night' : ''}`;
+        if (lowerCondition.includes('snowy') || lowerCondition.includes('snow')) {
+            return `weather-snow${isNight ? '-night' : ''}`;
         }
-        if (lowerCondition.includes('thunderstorm') || lowerCondition.includes('storm')) {
-            return `weather-storm${isNightTime ? '-night' : ''}`;
+        if (lowerCondition.includes('lightning') || lowerCondition.includes('storm')) {
+            return `weather-storm${isNight ? '-night' : ''}`;
         }
         if (lowerCondition.includes('cloudy')) {
-            return `weather-cloudy${isNightTime ? '-night' : ''}`;
+            return `weather-cloudy${isNight ? '-night' : ''}`;
         }
         if (lowerCondition.includes('sunny') || lowerCondition.includes('clear')) {
-            return isNightTime ? 'weather-clear-night' : 'weather-sunny';
+            return isNight ? 'weather-clear-night' : 'weather-sunny';
         }
-        if (lowerCondition.includes('fog') || lowerCondition.includes('mist')) {
-            return `weather-fog${isNightTime ? '-night' : ''}`;
+        if (lowerCondition.includes('fog')) {
+            return `weather-fog${isNight ? '-night' : ''}`;
         }
         
-        return isNightTime ? 'weather-default-night' : 'weather-default';
+        return isNight ? 'weather-default-night' : 'weather-default';
     }
 
-    getCurrentTemperature() {
-        if (!this.weatherData || this.weatherData.error) return '--';
+    getWeatherIconClass(condition) {
+        if (!condition) return 'sun';
         
-        if (this.weatherData.temperature && this.weatherData.temperature.value !== null) {
-            const celsius = this.weatherData.temperature.value;
-            const fahrenheit = (celsius * 9/5) + 32;
-            return Math.round(fahrenheit);
-        }
+        const lowerCondition = condition.toLowerCase();
         
-        return '--';
+        if (lowerCondition.includes('sunny') || lowerCondition.includes('clear')) return 'sun';
+        if (lowerCondition.includes('rainy') || lowerCondition.includes('rain')) return 'rain';
+        if (lowerCondition.includes('snowy') || lowerCondition.includes('snow')) return 'snow';
+        if (lowerCondition.includes('lightning') || lowerCondition.includes('storm')) return 'storm';
+        if (lowerCondition.includes('cloudy')) return 'cloud';
+        if (lowerCondition.includes('fog')) return 'fog';
+        
+        return 'sun';
     }
 
-    getCurrentCondition() {
-        if (!this.weatherData || this.weatherData.error) return 'Loading...';
-        
-        return this.weatherData.textDescription || 'Unknown';
-    }
-
-    renderForecast() {
-        if (!this.forecastData || this.forecastData.length === 0) {
-            return html``;
-        }
-
-        const forecast = this.forecastData.slice(0, 4);
-        
-        return html`
-            <div style="display: flex; justify-content: center; gap: 8px; margin-top: 30px; flex-wrap: nowrap;">
-                ${forecast.map(period => {
-                    const temp = period.temperature;
-                    const condition = period.shortForecast;
-                    const name = period.name;
-                    
-                    return html`
-                        <div style="text-align: center; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 8px; min-width: 70px; flex: 1;">
-                            <div style="font-size: 0.8em; opacity: 0.9; margin-bottom: 5px; font-weight: bold;">${name}</div>
-                            <div style="font-size: 3em; margin: 5px 0;">${this.getWeatherEmoji(condition)}</div>
-                            <div style="font-size: 1em; font-weight: bold;">${temp}°</div>
-                        </div>
-                    `;
-                })}
-            </div>
-        `;
+    getNightModeClass() {
+        return this.isNightTime() ? 'night-mode' : '';
     }
 
     render() {
@@ -323,351 +320,63 @@ class FlippyWeather extends LitElement {
         const hourStr = hour < 10 ? "0" + hour : "" + hour;
         const minuteStr = now.getMinutes() < 10 ? "0" + now.getMinutes() : "" + now.getMinutes();
         
-        const temperature = this.getCurrentTemperature();
-        const condition = this.getCurrentCondition();
-        const weatherAnimationClass = this._config.animated_background ? this.getWeatherAnimationClass(condition) : '';
+        const weatherData = this.getWeatherFromEntity();
+        const weatherAnimationClass = this.getWeatherAnimationClass(weatherData.condition);
+        const selectedTheme = themes[this._config.theme] || themes.default;
+        
+        const weatherIcon = this.getWeatherEmoji(weatherData.condition);
+        const iconClass = this.getWeatherIconClass(weatherData.condition);
+        const tempUnit = this.getTemperatureUnit();
+        const nightModeClass = this.getNightModeClass();
 
         return html`
             <style>
-                ${themes['default']['css']}
+                ${selectedTheme.css}
                 
                 .flippy-container {
                     position: relative;
                     overflow: hidden;
                     transition: background 1s ease-in-out;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    height: 100%;
                 }
                 
-                /* Animated Weather Backgrounds */
-                .weather-rain {
-                    background: linear-gradient(135deg, #4a90e2, #7b68ee, #2c3e50) !important;
-                }
-                
-                .weather-rain::before {
-                    content: '';
+                .weather-icon-large {
                     position: absolute;
                     top: 0;
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background-image: 
-                        linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
-                    background-size: 
-                        3px 100%,
-                        7px 100%,
-                        11px 100%;
-                    animation: rainFall 0.8s linear infinite,
-                               rainFall2 1.2s linear infinite,
-                               rainFall3 1.6s linear infinite;
-                    pointer-events: none;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 300px;
                     z-index: 1;
-                }
-                
-                @keyframes rainFall {
-                    0% { transform: translateY(-100%); }
-                    100% { transform: translateY(100%); }
-                }
-                
-                @keyframes rainFall2 {
-                    0% { transform: translateY(-100%) translateX(-2px); }
-                    100% { transform: translateY(100%) translateX(-2px); }
-                }
-                
-                @keyframes rainFall3 {
-                    0% { transform: translateY(-100%) translateX(2px); }
-                    100% { transform: translateY(100%) translateX(2px); }
-                }
-                
-                .weather-snow {
-                    background: linear-gradient(135deg, #e6e9f0, #b8bcc8, #4a5568) !important;
-                }
-                
-                .weather-snow::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-image: 
-                        radial-gradient(2px 2px at 20px 30px, white, transparent),
-                        radial-gradient(2px 2px at 40px 70px, white, transparent),
-                        radial-gradient(1px 1px at 90px 40px, white, transparent),
-                        radial-gradient(1px 1px at 130px 80px, white, transparent),
-                        radial-gradient(2px 2px at 160px 30px, white, transparent);
-                    background-repeat: repeat;
-                    background-size: 200px 100px;
-                    animation: snowFall 10s linear infinite;
                     pointer-events: none;
-                    z-index: 1;
+                    line-height: 1;
                 }
                 
-                @keyframes snowFall {
-                    0% { transform: translateY(-100%); }
-                    100% { transform: translateY(100%); }
-                }
-                
-                .weather-cloudy {
-                    background: linear-gradient(135deg, #bdc3c7, #95a5a6, #34495e) !important;
-                }
-                
-                .weather-cloudy::before {
-                    content: '';
-                    position: absolute;
-                    top: 10%;
-                    left: -20%;
-                    width: 140%;
-                    height: 80%;
-                    background: 
-                        radial-gradient(ellipse 100px 50px at 50% 50%, rgba(255,255,255,0.3), transparent),
-                        radial-gradient(ellipse 80px 40px at 30% 40%, rgba(255,255,255,0.2), transparent),
-                        radial-gradient(ellipse 120px 60px at 70% 60%, rgba(255,255,255,0.25), transparent);
-                    animation: cloudDrift 20s ease-in-out infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                @keyframes cloudDrift {
-                    0%, 100% { transform: translateX(-10px); }
-                    50% { transform: translateX(10px); }
-                }
-                
-                .weather-sunny {
-                    background: linear-gradient(135deg, #f39c12, #e74c3c, #f1c40f) !important;
-                }
-                
-                .weather-sunny::before {
-                    content: '';
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    width: 200px;
-                    height: 200px;
-                    margin: -100px 0 0 -100px;
-                    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-                    animation: sunGlow 4s ease-in-out infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                @keyframes sunGlow {
-                    0%, 100% { transform: scale(1); opacity: 0.3; }
-                    50% { transform: scale(1.1); opacity: 0.6; }
-                }
-                
-                .weather-storm {
-                    background: linear-gradient(135deg, #2c3e50, #34495e, #1a1a2e) !important;
-                }
-                
-                .weather-storm::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(255,255,255,0.1);
-                    animation: lightning 3s infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                @keyframes lightning {
-                    0%, 90%, 100% { opacity: 0; }
-                    5%, 10% { opacity: 1; }
-                }
-                
-                .weather-fog {
-                    background: linear-gradient(135deg, #95a5a6, #bdc3c7, #ecf0f1) !important;
-                }
-                
-                .weather-fog::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: 
-                        linear-gradient(90deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0.1) 100%);
-                    animation: fogWave 8s ease-in-out infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                @keyframes fogWave {
-                    0%, 100% { transform: translateX(-20%); opacity: 0.7; }
-                    50% { transform: translateX(20%); opacity: 0.3; }
-                }
-                
-                /* Night Mode Weather Backgrounds */
-                .weather-rain-night {
-                    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460) !important;
-                }
-                
-                .weather-rain-night::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-image: 
-                        linear-gradient(90deg, rgba(173,216,230,0.15) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(173,216,230,0.08) 1px, transparent 1px),
-                        linear-gradient(90deg, rgba(173,216,230,0.05) 1px, transparent 1px);
-                    background-size: 
-                        3px 100%,
-                        7px 100%,
-                        11px 100%;
-                    animation: rainFall 0.8s linear infinite,
-                               rainFall2 1.2s linear infinite,
-                               rainFall3 1.6s linear infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                .weather-snow-night {
-                    background: linear-gradient(135deg, #2c3e50, #34495e, #1a252f) !important;
-                }
-                
-                .weather-snow-night::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-image: 
-                        radial-gradient(2px 2px at 20px 30px, rgba(255,255,255,0.8), transparent),
-                        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.6), transparent),
-                        radial-gradient(1px 1px at 90px 40px, rgba(255,255,255,0.7), transparent),
-                        radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.5), transparent),
-                        radial-gradient(2px 2px at 160px 30px, rgba(255,255,255,0.9), transparent);
-                    background-repeat: repeat;
-                    background-size: 200px 100px;
-                    animation: snowFall 10s linear infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                .weather-cloudy-night {
-                    background: linear-gradient(135deg, #2c3e50, #34495e, #1a1a2e) !important;
-                }
-                
-                .weather-cloudy-night::before {
-                    content: '';
-                    position: absolute;
-                    top: 10%;
-                    left: -20%;
-                    width: 140%;
-                    height: 80%;
-                    background: 
-                        radial-gradient(ellipse 100px 50px at 50% 50%, rgba(169,169,169,0.2), transparent),
-                        radial-gradient(ellipse 80px 40px at 30% 40%, rgba(169,169,169,0.15), transparent),
-                        radial-gradient(ellipse 120px 60px at 70% 60%, rgba(169,169,169,0.18), transparent);
-                    animation: cloudDrift 20s ease-in-out infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                .weather-clear-night {
-                    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460) !important;
-                }
-                
-                .weather-clear-night::before {
-                    content: '';
-                    position: absolute;
-                    top: 20%;
-                    right: 20%;
-                    width: 100px;
-                    height: 100px;
-                    background: radial-gradient(circle, rgba(245,245,220,0.6) 30%, rgba(245,245,220,0.2) 50%, transparent 70%);
-                    border-radius: 50%;
-                    animation: moonGlow 6s ease-in-out infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                .weather-clear-night::after {
-                    content: '⭐';
-                    position: absolute;
-                    top: 15%;
-                    left: 20%;
-                    font-size: 1.5em;
-                    animation: twinkle 3s ease-in-out infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                @keyframes moonGlow {
-                    0%, 100% { transform: scale(1); opacity: 0.6; }
-                    50% { transform: scale(1.05); opacity: 0.8; }
-                }
-                
-                @keyframes twinkle {
-                    0%, 100% { opacity: 0.3; transform: scale(0.8); }
-                    50% { opacity: 1; transform: scale(1.2); }
-                }
-                
-                .weather-storm-night {
-                    background: linear-gradient(135deg, #0a0a0a, #1a1a1a, #2c2c2c) !important;
-                }
-                
-                .weather-storm-night::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(135,206,235,0.15);
-                    animation: lightning 2.5s infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                .weather-fog-night {
-                    background: linear-gradient(135deg, #2c3e50, #34495e, #1a252f) !important;
-                }
-                
-                .weather-fog-night::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: 
-                        linear-gradient(90deg, rgba(169,169,169,0.1) 0%, rgba(169,169,169,0.2) 50%, rgba(169,169,169,0.1) 100%);
-                    animation: fogWave 8s ease-in-out infinite;
-                    pointer-events: none;
-                    z-index: 1;
-                }
-                
-                .weather-default-night {
-                    background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460) !important;
-                }
-                
-                /* Ensure content is above animations */
-                .htc-clock,
-                .weather-info {
+                .left-section {
+                    display: flex;
+                    align-items: center;
+                    gap: 8px;
                     position: relative;
                     z-index: 2;
                 }
                 
-                .htc-clock {
+                .right-section {
                     display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    margin: 20px 0;
-                    gap: 15px;
+                    flex-direction: column;
+                    align-items: flex-end;
+                    position: relative;
+                    z-index: 2;
                 }
                 
                 .flip-card {
-                    width: 100px;
-                    height: 150px;
+                    width: 40px;
+                    height: 60px;
                     perspective: 1000px;
                 }
                 
@@ -675,7 +384,7 @@ class FlippyWeather extends LitElement {
                     position: relative;
                     width: 100%;
                     height: 100%;
-                    transition: transform 0.6s;
+                    transition: transform 0.3s;
                     transform-style: preserve-3d;
                 }
                 
@@ -689,42 +398,26 @@ class FlippyWeather extends LitElement {
                     height: 100%;
                     backface-visibility: hidden;
                     background: rgba(255, 255, 255, 0.15);
-                    border-radius: 12px;
-                    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+                    border-radius: 8px;
+                    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 4.5em;
+                    font-size: 2em;
                     font-weight: bold;
                     color: #ffffff;
                     font-family: 'Courier New', monospace;
-                    border: 2px solid rgba(255, 255, 255, 0.2);
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-                    backdrop-filter: blur(10px);
-                }
-                
-                .flip-card-face::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    bottom: 0;
-                    background: linear-gradient(180deg, rgba(255,255,255,0.3) 0%, transparent 50%, rgba(0,0,0,0.1) 100%);
-                    border-radius: 12px;
-                    pointer-events: none;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+                    backdrop-filter: blur(5px);
                 }
                 
                 .clock-separator {
-                    width: 25px;
-                    height: 150px;
-                    font-size: 5em;
+                    font-size: 2.5em;
                     color: white;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
                     animation: blink 2s infinite;
-                    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+                    margin: 0 5px;
                 }
                 
                 @keyframes blink {
@@ -733,62 +426,54 @@ class FlippyWeather extends LitElement {
                 }
                 
                 .am-pm-indicator {
-                    margin-left: 10px;
-                    font-size: 1.2em;
+                    margin-left: 8px;
+                    font-size: 0.9em;
                     background: rgba(255,255,255,0.2);
-                    padding: 8px 12px;
-                    border-radius: 15px;
+                    padding: 4px 8px;
+                    border-radius: 10px;
                     font-weight: bold;
                     text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
                 }
                 
-                .weather-info {
-                    margin: 30px 0;
-                    color: white;
-                    text-align: center;
-                }
-                
-                .current-weather {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 30px;
-                    margin: 30px 0;
-                }
-                
-                .weather-icon {
-                    font-size: 12em;
-                    line-height: 1;
-                }
-                
                 .temperature {
-                    font-size: 12em;
-                    font-weight: 600;
-                    line-height: 0.8;
-                    text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+                    font-size: 4em;
+                    font-weight: bold;
+                    color: white;
+                    text-shadow: 3px 3px 6px rgba(0,0,0,0.9);
+                    text-align: right;
+                    margin-bottom: 5px;
                 }
                 
                 .condition {
                     font-size: 1.2em;
-                    opacity: 0.9;
-                    margin-bottom: 15px;
-                    max-width: 300px;
-                    margin-left: auto;
-                    margin-right: auto;
+                    font-weight: bold;
+                    color: white;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+                    text-align: right;
+                    margin-bottom: 5px;
                 }
                 
-                .error-message {
-                    background: rgba(255, 0, 0, 0.2);
-                    border: 1px solid rgba(255, 0, 0, 0.5);
-                    border-radius: 8px;
-                    padding: 10px;
-                    margin: 10px 0;
+                .date {
                     font-size: 0.9em;
+                    color: white;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+                    text-align: right;
+                    margin-bottom: 2px;
+                }
+                
+                .time {
+                    font-size: 0.8em;
+                    color: white;
+                    opacity: 0.9;
+                    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+                    text-align: right;
                 }
             </style>
             <ha-card>
-                <div class="flippy-container ${weatherAnimationClass}">
-                    <div class="htc-clock">
+                <div class="flippy-container ${weatherAnimationClass} ${nightModeClass}">
+                    <div class="weather-icon-large ${iconClass}">${weatherIcon}</div>
+                    
+                    <div class="left-section">
                         <div class="flip-card">
                             <div class="flip-card-inner" data-digit="firstHourDigit">
                                 <div class="flip-card-face">${hourStr[0]}</div>
@@ -822,25 +507,11 @@ class FlippyWeather extends LitElement {
                         ` : ''}
                     </div>
                     
-                    <div class="weather-info">
-                        ${this.weatherData && this.weatherData.error ? html`
-                            <div class="error-message">
-                                Weather Error: ${this.weatherData.error}
-                            </div>
-                        ` : ''}
-                        
-                        <div class="current-weather">
-                            <div class="weather-icon">${this.getWeatherEmoji(condition)}</div>
-                            <div class="temperature">${temperature}°</div>
-                        </div>
-                        
-                        <div class="condition">${condition}</div>
-                        
-                        ${this.renderForecast()}
-                    </div>
-                    
-                    <div style="font-size: 0.8em; opacity: 0.7; margin-top: 20px; color: white; text-align: center; position: relative; z-index: 2;">
-                        FlippyWeather Clock v${flippyVersion} | NWS API
+                    <div class="right-section">
+                        <div class="temperature">${weatherData.temperature}°${tempUnit}</div>
+                        <div class="condition">${weatherData.condition.charAt(0).toUpperCase() + weatherData.condition.slice(1)}</div>
+                        <div class="date">${now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        <div class="time">${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>
                     </div>
                 </div>
             </ha-card>
@@ -848,16 +519,11 @@ class FlippyWeather extends LitElement {
     }
 
     getCardSize() {
-        return 5;
+        return 2;
     }
 
     set hass(hass) {
         this._hass = hass;
-        
-        if (hass && !this.latitude && !this.longitude) {
-            this.initializeWeather();
-        }
-        
         this.requestUpdate();
     }
 
@@ -866,4 +532,4 @@ class FlippyWeather extends LitElement {
     }
 }
 
-customElements.define("flippyweather-card", FlippyWeather);
+customElements.define("flippyweather-clock", FlippyWeatherClock);
